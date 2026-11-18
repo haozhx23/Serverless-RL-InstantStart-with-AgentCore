@@ -1,0 +1,125 @@
+{
+  "fields": {
+    "title": {
+      "en": "Supervised fine-tuning on a small dataset",
+      "zh": "小样本监督微调"
+    },
+    "technique": {
+      "en": "SFT",
+      "zh": "SFT"
+    },
+    "summary": {
+      "en": "Supervised fine-tuning on facts the base model cannot know, then the same questions asked to the base model and to the trained weights.",
+      "zh": "使用基座模型不可能知道的虚构事实进行监督微调，再用同一组问题对比基座模型与训练后模型的回答。"
+    },
+    "you_will_see.0": {
+      "en": "The whole loop is two API calls per step, made by a for-loop in your process",
+      "zh": "训练循环在本地进程中执行，每步调用两次 API"
+    },
+    "you_will_see.1": {
+      "en": "Session from request to Running in about 10 s, loss falling over 8 steps",
+      "zh": "session 从发起请求到 Running 约需 10 s，展示 8 步训练中的 loss 下降情况"
+    },
+    "you_will_see.2": {
+      "en": "Ask the model a question mid-run: it answers from a snapshot of the weights at that step",
+      "zh": "运行期间可向模型提问，模型使用当前步骤的权重快照作答"
+    },
+    "evidence.note": {
+      "en": "Live on 2026-10-29: ready in 10.8 s, loss 7.99 to 0.03 by step 6, and 7 of 8 questions answered with the trained fact. The first forward_backward took 52 s, the others about 4 s. BillableTokenUsage matched the estimate.",
+      "zh": "2026-10-29 实时运行：session 在 10.8 s 后就绪，loss 从 7.99 降至第 6 步的 0.03；8 个问题中，7 个回答包含训练中的事实。首次 forward_backward 耗时 52 s，之后每次约 4 s。BillableTokenUsage 与估算一致。"
+    },
+    "loop.header_out": {
+      "en": "the batch from data.py",
+      "zh": "data.py 中的 batch"
+    },
+    "node.forward_backward.title": {
+      "en": "forward_backward",
+      "zh": "forward_backward"
+    },
+    "node.forward_backward.out": {
+      "en": "gradient, kept on the GPU",
+      "zh": "梯度保存在 GPU 上"
+    },
+    "node.optim_step.title": {
+      "en": "optim_step",
+      "zh": "optim_step"
+    },
+    "node.optim_step.out": {
+      "en": "next step",
+      "zh": "下一步"
+    },
+    "slot.data.label": {
+      "en": "Training data",
+      "zh": "训练数据"
+    },
+    "slot.data.facts.label": {
+      "en": "Eight made-up facts",
+      "zh": "八条虚构事实"
+    },
+    "slot.data.facts.short": {
+      "en": "facts",
+      "zh": "事实"
+    },
+    "slot.data.facts.summary": {
+      "en": "Question and answer pairs the base model cannot know.",
+      "zh": "包含基座模型不可能知道的事实的问答对。"
+    },
+    "slot.data.facts.watch": {
+      "en": "Edit them: the batch is built from this list in your process.",
+      "zh": "训练数据可编辑，本地进程根据列表构建 batch。"
+    },
+    "param.base_model.label": {
+      "en": "Base model",
+      "zh": "基座模型"
+    },
+    "param.steps.label": {
+      "en": "Training steps",
+      "zh": "训练步数"
+    },
+    "param.learning_rate.label": {
+      "en": "Learning rate",
+      "zh": "学习率"
+    },
+    "param.save_checkpoint.label": {
+      "en": "Save a resumable checkpoint",
+      "zh": "保存可恢复训练的 checkpoint"
+    },
+    "param.save_checkpoint.help": {
+      "en": "save_state took 53 s when measured; it writes weights + optimizer state to a CHECKPOINT package.",
+      "zh": "实测 save_state 耗时 53 s，会将权重和优化器状态保存为 CHECKPOINT 包。"
+    },
+    "param.lora_rank.label": {
+      "en": "LoRA rank",
+      "zh": "LoRA rank"
+    },
+    "param.lora_alpha.label": {
+      "en": "LoRA alpha",
+      "zh": "LoRA alpha"
+    },
+    "param.adam_beta1.label": {
+      "en": "Adam beta1",
+      "zh": "Adam beta1"
+    },
+    "param.adam_beta2.label": {
+      "en": "Adam beta2",
+      "zh": "Adam beta2"
+    },
+    "param.adam_eps.label": {
+      "en": "Adam epsilon",
+      "zh": "Adam epsilon"
+    },
+    "param.weight_decay.label": {
+      "en": "Weight decay",
+      "zh": "权重衰减（weight decay）"
+    },
+    "metric.loss.label": {
+      "en": "Training loss",
+      "zh": "训练 loss"
+    }
+  },
+  "events": {
+    "Probes use max_tokens=512, the service minimum, and stop at the first newline to keep answers short. Smaller values are rejected by request validation.": "提问时使用 max_tokens=512，即服务允许的最小值，并在首个换行处结束生成，以保持回答简短。低于此值的请求无法通过校验。",
+    "Same questions, base model vs trained weights": "同一组问题：对比基座模型与训练后模型",
+    "Questions answered with the trained fact": "回答包含训练事实的问题数"
+  }
+}

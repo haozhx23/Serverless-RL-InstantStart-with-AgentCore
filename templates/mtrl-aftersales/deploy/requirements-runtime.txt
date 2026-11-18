@@ -1,0 +1,13 @@
+# Agent 运行时依赖。用标准装法（带完整依赖树），不做裁剪。
+#
+# 实测记录：`pip install --no-deps sagemaker-train sagemaker-core` 加手工补依赖
+# 可以把解包体积从约 815 MB 降到约 95 MB，但会踩两个坑——
+#   1. sagemaker.core.__init__ 的传递导入很深（rich -> attrs -> pandas -> ...），
+#      漏一个就在容器启动时才炸；
+#   2. 按 ModuleNotFoundError 的模块名去 pip install 会装错包
+#      （缺 attr 时正确的包名是 attrs，PyPI 上另有一个同名的无关包 attr）。
+# 因此这里选择标准装法。要裁剪就必须在目标架构的容器里跑通导入冒烟测试，
+# 不能只在开发机上验证（开发机的 site-packages 会掩盖缺失的依赖）。
+bedrock-agentcore
+sagemaker-train
+openai

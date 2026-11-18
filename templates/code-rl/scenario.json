@@ -1,0 +1,396 @@
+{
+  "id": "code-rl",
+  "order": 4,
+  "engine": "training-session",
+  "title": "Write Python functions that pass their tests",
+  "technique": "RL · single turn · sandbox",
+  "summary": "The model writes a Python function; an AgentCore Runtime sandbox runs it against the function's tests, and the share of tests passed is the reward. Model-written code never runs in your process, which holds your AWS credentials and the training session.",
+  "status": "live-verified",
+  "sandbox": {
+    "executes": "The code of each sampled answer and its tests, one microVM per answer (or per group)"
+  },
+  "evidence": {
+    "basis": "live run r-261110-080539-d200 of this template",
+    "date": "2026-11-10",
+    "region": "us-west-2",
+    "model": "openai/gpt-oss-20b",
+    "duration_s": 337,
+    "cost_usd": 0.01443,
+    "note": "One live run on 2026-11-10 with the defaults (6 steps, 8 functions x 4 answers, one sandbox session per answer). The sandbox side worked: 223 sessions opened and stopped, none throttled, first call p50 1.57 s, 3.8 to 4.9 s of testing per step. Training did not show: the base model already passed almost every test (mean reward 0.98 to 1.0, held-out 8 to 8), and only steps 0 and 2 had groups with a gradient, so the problems need to be harder. Training tokens $0.0144 (matches BillableTokenUsage); AgentCore Runtime $0.0304 for the 223 sessions (usage logs x list price), about twice the tokens. An earlier run that day prompted a plain Python file to continue: gpt-oss-20b wrote prose in all 192 answers, which is why the prompt uses the harmony format."
+  },
+  "you_write": [
+    "task.py",
+    "reward.py",
+    "loop.py"
+  ],
+  "aws_runs": [
+    "create session",
+    "save weights + rebind",
+    "sample",
+    "forward_backward",
+    "optim_step",
+    "AgentCore Runtime sandbox sessions"
+  ],
+  "you_will_see": [
+    "A fourth block on your side of the loop that runs in AgentCore Runtime, not in this process: its sessions, cold starts and AgentCore cost",
+    "A reward check in the sandbox before the training session exists: correct, wrong and broken functions, one that exits before its tests finish, one that never returns",
+    "Reward, share of bodies passing every test, share with no result, and the sandbox's cold start per step"
+  ],
+  "files": [
+    "loop.py",
+    "task.py",
+    "reward.py",
+    "runner.py",
+    "problems.json"
+  ],
+  "metrics": [
+    {
+      "key": "reward_mean",
+      "label": "Mean reward",
+      "format": "0.00",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "all_pass",
+      "label": "Answers passing every test",
+      "format": "0%",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "groups_with_signal",
+      "label": "Groups with signal",
+      "format": "0%",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "no_code",
+      "label": "Answers without a code block",
+      "format": "0%",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "no_result",
+      "label": "Answers with no result (crash, early exit, timeout)",
+      "format": "0%",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "sampler_trainer_kl",
+      "label": "Sampler-trainer KL (k3)",
+      "format": "0.0000"
+    },
+    {
+      "key": "sandbox_cold_start_s",
+      "label": "Sandbox cold start, p50 (s)",
+      "format": "0.00",
+      "min": 0
+    }
+  ],
+  "params": [
+    {
+      "key": "base_model",
+      "label": "Base model",
+      "type": "model",
+      "default": "openai/gpt-oss-20b"
+    },
+    {
+      "key": "steps",
+      "label": "RL steps",
+      "type": "int",
+      "default": 6,
+      "min": 1,
+      "max": 50
+    },
+    {
+      "key": "prompts_per_step",
+      "label": "Functions per step",
+      "type": "int",
+      "default": 8,
+      "min": 1,
+      "max": 64
+    },
+    {
+      "key": "group_size",
+      "label": "Answers per function",
+      "type": "int",
+      "default": 4,
+      "min": 2,
+      "max": 16
+    },
+    {
+      "key": "learning_rate",
+      "label": "Learning rate",
+      "type": "float",
+      "default": 4e-05,
+      "min": 1e-07,
+      "max": 0.001
+    },
+    {
+      "key": "temperature",
+      "label": "Sampling temperature",
+      "type": "float",
+      "default": 0.7,
+      "min": 0,
+      "max": 2
+    },
+    {
+      "key": "test_timeout_s",
+      "label": "Test timeout (s)",
+      "type": "float",
+      "default": 10.0,
+      "min": 1,
+      "max": 60,
+      "help": "Code still running after this is killed with its whole process group and scores no result. In a new sandbox version's first sessions a correct solution's test program took up to 4.9 s, and up to 6.0 s later (measured)."
+    },
+    {
+      "key": "isolation",
+      "label": "Sandbox per",
+      "type": "choice",
+      "default": "rollout",
+      "choices": [
+        "rollout",
+        "group"
+      ],
+      "slot": true,
+      "help": "One AgentCore Runtime session per answer, or one per group of answers for the same function, wiped between answers."
+    },
+    {
+      "key": "save_checkpoint",
+      "label": "Save a resumable checkpoint",
+      "type": "bool",
+      "default": false,
+      "help": "save_state took 53 s when measured."
+    },
+    {
+      "key": "max_tokens",
+      "label": "Max tokens per completion",
+      "type": "int",
+      "default": 1024,
+      "min": 1,
+      "max": 8192,
+      "advanced": true,
+      "help": "The service minimum is 512. The model reasons briefly before it writes the code; an answer cut off before its code block scores 0."
+    },
+    {
+      "key": "seed",
+      "label": "Problem seed",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 1000000,
+      "advanced": true
+    },
+    {
+      "key": "lora_rank",
+      "label": "LoRA rank",
+      "type": "int",
+      "default": 32,
+      "min": 1,
+      "max": 256,
+      "advanced": true
+    },
+    {
+      "key": "lora_alpha",
+      "label": "LoRA alpha",
+      "type": "int",
+      "default": 64,
+      "min": 1,
+      "max": 512,
+      "advanced": true
+    },
+    {
+      "key": "adam_beta1",
+      "label": "Adam beta1",
+      "type": "float",
+      "default": 0.9,
+      "min": 0,
+      "max": 1,
+      "advanced": true
+    },
+    {
+      "key": "adam_beta2",
+      "label": "Adam beta2",
+      "type": "float",
+      "default": 0.999,
+      "min": 0,
+      "max": 1,
+      "advanced": true
+    },
+    {
+      "key": "adam_eps",
+      "label": "Adam epsilon",
+      "type": "float",
+      "default": 1e-08,
+      "min": 0,
+      "max": 1,
+      "advanced": true
+    },
+    {
+      "key": "weight_decay",
+      "label": "Weight decay",
+      "type": "float",
+      "default": 0.01,
+      "min": 0,
+      "max": 1,
+      "advanced": true
+    }
+  ],
+  "estimate": {
+    "steps": "steps",
+    "unbilled_params": [
+      "save_checkpoint"
+    ]
+  },
+  "loop": {
+    "driver": "client",
+    "header": "for step in range(steps)",
+    "header_out": "",
+    "before": [
+      "reward_check",
+      "create_session",
+      "load_tokenizer",
+      "sample",
+      "sandbox_run"
+    ],
+    "after": [
+      "save_weights_and_rebind",
+      "save_state",
+      "sample",
+      "sandbox_run",
+      "compare",
+      "stop_session"
+    ],
+    "nodes": [
+      {
+        "op": "save_weights_and_rebind",
+        "lane": "aws",
+        "title": "Rebind sampler",
+        "call": "tc.save_weights_and_get_sampling_client()",
+        "out": "sampler on the new weights",
+        "primitive": "save_weights_for_sampler"
+      },
+      {
+        "op": "make_prompts",
+        "lane": "client",
+        "title": "Pick functions",
+        "call": "rng.sample(task.TRAIN, {prompts_per_step})",
+        "out": "{prompts_per_step} function heads"
+      },
+      {
+        "op": "sample",
+        "lane": "aws",
+        "title": "Sample answers",
+        "call": "sampler.sample(x, num_samples={group_size})",
+        "out": "reasoning + a code block, logprobs",
+        "primitive": "sample"
+      },
+      {
+        "op": "sandbox_run",
+        "lane": "client",
+        "where": "agentcore",
+        "title": "Run the tests",
+        "call": "task.grade(sandbox, problem, code)",
+        "slot": "isolation",
+        "out": "tests passed, timeouts",
+        "file": "task.py",
+        "function": "grade"
+      },
+      {
+        "op": "reward",
+        "lane": "client",
+        "title": "Score",
+        "call": "reward(result)",
+        "slot": "reward",
+        "out": "rewards"
+      },
+      {
+        "op": "advantage",
+        "lane": "client",
+        "title": "Advantages",
+        "call": "advantages(groups)",
+        "out": "datums with advantages"
+      },
+      {
+        "op": "forward_backward",
+        "lane": "aws",
+        "title": "forward_backward",
+        "call": "tc.forward_backward(datums, \"importance_sampling\")",
+        "out": "gradient, kept on the GPU",
+        "primitive": "forward_backward"
+      },
+      {
+        "op": "optim_step",
+        "lane": "aws",
+        "title": "optim_step",
+        "call": "tc.optim_step(adam)",
+        "out": "next step",
+        "primitive": "optim_step"
+      }
+    ]
+  },
+  "slots": [
+    {
+      "key": "reward",
+      "node": "reward",
+      "label": "Reward",
+      "file": "reward.py",
+      "contract": "reward(result: dict) -> float",
+      "function": "reward",
+      "editable": true,
+      "default": "tests_passed",
+      "variants": [
+        {
+          "id": "tests_passed",
+          "label": "Share of tests passed",
+          "file": "reward.py",
+          "summary": "passed / total; 0 when the program left no result.",
+          "watch": "Answers that fail some tests still rank above ones that fail all, so more groups give a gradient.",
+          "short": "tests passed"
+        },
+        {
+          "id": "all_pass",
+          "label": "All or nothing",
+          "file": "variants/reward_all_pass.py",
+          "summary": "1 only when every test passed in time.",
+          "watch": "Groups whose answers all fail at least one test give no gradient.",
+          "short": "all pass"
+        },
+        {
+          "id": "exit_code",
+          "label": "Exit code only",
+          "file": "variants/reward_exit_code.py",
+          "summary": "1 when the test program exits with code 0, as when grading by pytest's exit status.",
+          "watch": "The reward check warns: an answer that calls os._exit(0) skips the tests and still scores 1.",
+          "short": "exit code"
+        }
+      ]
+    },
+    {
+      "key": "isolation",
+      "node": "sandbox_run",
+      "label": "Sandbox per",
+      "param": "isolation",
+      "variants": [
+        {
+          "id": "rollout",
+          "label": "One session per answer",
+          "summary": "Every answer gets a fresh microVM, stopped as soon as it is scored, as MTRL does per rollout.",
+          "watch": "The most sessions and cold starts: prompts x samples per step.",
+          "short": "per answer"
+        },
+        {
+          "id": "group",
+          "label": "One session per group",
+          "summary": "The answers for one function share a microVM; its work directory is wiped and its processes killed between answers.",
+          "watch": "A quarter of the sessions with 4 samples per prompt; answers of a group run one after another.",
+          "short": "per group"
+        }
+      ]
+    }
+  ]
+}

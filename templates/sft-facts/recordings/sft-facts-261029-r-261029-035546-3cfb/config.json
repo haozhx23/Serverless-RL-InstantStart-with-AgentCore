@@ -1,0 +1,28 @@
+{
+  "run_id": "r-261029-035546-3cfb",
+  "scenario": "sft-facts",
+  "backend": "live",
+  "aws": {
+    "region": "us-west-2",
+    "role_arn": "arn:aws:iam::111122223333:role/service-role/AmazonSageMaker-ServerlessRL-InstantStart",
+    "model_package_group_arn": "arn:aws:sagemaker:us-west-2:111122223333:model-package-group/serverless-rl-instantstart",
+    "s3_output_path": "s3://sagemaker-us-west-2-111122223333/serverless-rl-instantstart/",
+    "session_name_prefix": "instantstart"
+  },
+  "params": {
+    "base_model": "openai/gpt-oss-20b",
+    "steps": 8,
+    "learning_rate": 0.0002,
+    "save_checkpoint": true,
+    "lora_rank": 32,
+    "lora_alpha": 64,
+    "adam_beta1": 0.9,
+    "adam_beta2": 0.999,
+    "adam_eps": 1e-08,
+    "weight_decay": 0.01
+  },
+  "variants": {
+    "data": "facts"
+  },
+  "custom_files": []
+}

@@ -1,0 +1,415 @@
+{
+  "fields": {
+    "title": {
+      "en": "Reinforce correct multiplication answers",
+      "zh": "乘法问答的强化学习"
+    },
+    "technique": {
+      "en": "RL · single turn",
+      "zh": "RL · 单轮"
+    },
+    "summary": {
+      "en": "A GRPO-style loop in your process: sample a group per prompt, score it with reward.py, turn the scores into advantages with advantage.py, update. Swap or edit any of the four slots.",
+      "zh": "本地进程执行 GRPO 式训练循环：为每个 prompt 采样一组回答，使用 reward.py 评分，再通过 advantage.py 将分数转换为 advantage，最后更新权重。四个插槽均支持替换或编辑。"
+    },
+    "you_will_see.0": {
+      "en": "Your loop drawn as it runs: which block is executing, on which side of the API, and what it cost",
+      "zh": "实时展示训练循环的执行状态、API 调用位置及对应费用"
+    },
+    "you_will_see.1": {
+      "en": "Most of each step on the AWS side: about 24 s to save weights and rebind the sampler, 11 s to sample, 6 s per update (measured 2026-10-29)",
+      "zh": "每步的大部分时间用于 AWS 操作：保存权重并重新绑定 sampler 约 24 s，采样约 11 s，每次更新约 6 s（2026-10-29 实测）"
+    },
+    "you_will_see.2": {
+      "en": "A reward check on known answers before the session exists, then reward, groups with signal and sampler-trainer KL per step",
+      "zh": "创建 session 前，用已知答案校验 reward；训练时逐步查看 reward、有训练信号的组和 sampler–trainer KL"
+    },
+    "evidence.note": {
+      "en": "One live run on 2026-10-29 with the defaults (6 steps, 8 prompts x 4 samples): mean reward 0.44 to 0.81, held-out 9 to 15 of 16, about 41 s per step. A single run: how much of the rise is sampling noise is not measured. Three more default runs that day: 9 to 14, 9 to 12 and 11 to 11; the base model's own held-out score varied between 9 and 11. Every other slot variant ran live once on 2026-11-02 with the other settings at their defaults ($0.0013 to $0.0017 each): batch_norm trained every group and cost the most ($0.00173); ppo and cispo returned no rollout_corr metrics; rebind_every 2 and 4 left the sampler 1 and up to 3 updates behind, with the KL reaching 0.07 and 0.17, and 4 finished in 216 s, where the default runs took 303 to 316 s; format only still trained, raising the share of bare-number answers from 50% to 91%.",
+      "zh": "2026-10-29 使用默认参数进行一次实时运行（6 步，8 个 prompt × 4 个样本）：平均 reward 从 0.44 升至 0.81，16 道留出题的正确回答数从 9 道增至 15 道，每步约 41 s。这是单次运行结果，尚未测量采样噪声对提升幅度的影响。当天另外 3 次默认设置运行：9 → 14、9 → 12、11 → 11；基座模型自身的留出集得分在 9 到 11 之间波动。其余插槽变体均于 2026-11-02 在其他设置保持默认的情况下各实时运行 1 次（每次 $0.0013–$0.0017）：batch_norm 让所有组都参与训练，费用最高（$0.00173）；ppo 和 cispo 不返回 rollout_corr 指标；rebind_every 为 2 和 4 时 sampler 分别落后 1 次和最多 3 次更新，KL 最高达到 0.07 和 0.17，其中 4 用时 216 s，默认设置的运行为 303–316 s；只看格式的 reward 仍会训练，纯数字回答的比例从 50% 升到 91%。"
+    },
+    "node.save_weights_and_rebind.title": {
+      "en": "Rebind sampler",
+      "zh": "重新绑定 sampler"
+    },
+    "node.save_weights_and_rebind.out": {
+      "en": "sampler on the new weights",
+      "zh": "绑定新权重的 sampler"
+    },
+    "node.make_prompts.title": {
+      "en": "Make prompts",
+      "zh": "生成 prompt"
+    },
+    "node.make_prompts.out": {
+      "en": "{prompts_per_step} prompts",
+      "zh": "{prompts_per_step} 个 prompt"
+    },
+    "node.sample.title": {
+      "en": "Sample groups",
+      "zh": "分组采样"
+    },
+    "node.sample.out": {
+      "en": "completions + logprobs",
+      "zh": "completion + logprob"
+    },
+    "node.reward.title": {
+      "en": "Score",
+      "zh": "打分"
+    },
+    "node.reward.out": {
+      "en": "rewards",
+      "zh": "reward"
+    },
+    "node.advantage.title": {
+      "en": "Advantages",
+      "zh": "计算 advantage"
+    },
+    "node.advantage.out": {
+      "en": "datums with advantages",
+      "zh": "带 advantage 的 datum"
+    },
+    "node.forward_backward.title": {
+      "en": "forward_backward",
+      "zh": "forward_backward"
+    },
+    "node.forward_backward.out": {
+      "en": "gradient, kept on the GPU",
+      "zh": "梯度保存在 GPU 上"
+    },
+    "node.optim_step.title": {
+      "en": "optim_step",
+      "zh": "optim_step"
+    },
+    "node.optim_step.out": {
+      "en": "next step",
+      "zh": "下一步"
+    },
+    "slot.reward.label": {
+      "en": "Reward",
+      "zh": "Reward"
+    },
+    "slot.reward.exact.label": {
+      "en": "Exact match",
+      "zh": "完全匹配"
+    },
+    "slot.reward.exact.short": {
+      "en": "exact",
+      "zh": "完全匹配"
+    },
+    "slot.reward.exact.summary": {
+      "en": "1 when the first number is the product, else 0.",
+      "zh": "第一个数字等于乘积时得 1，否则得 0。"
+    },
+    "slot.reward.exact.watch": {
+      "en": "Reward and held-out accuracy rise together.",
+      "zh": "reward 和留出集准确率一起上升。"
+    },
+    "slot.reward.partial.label": {
+      "en": "Partial credit",
+      "zh": "部分得分"
+    },
+    "slot.reward.partial.short": {
+      "en": "partial",
+      "zh": "部分得分"
+    },
+    "slot.reward.partial.summary": {
+      "en": "1 for the product; a wrong number earns up to 0.5 for digits in the right place.",
+      "zh": "答案等于乘积时得 1；答案错误时，根据正确数位的数量最多得 0.5。"
+    },
+    "slot.reward.partial.watch": {
+      "en": "All-wrong groups are no longer all-equal, so they can give a gradient too. Live (one run) all-wrong groups were rare, and about as many groups gave a gradient as with exact.",
+      "zh": "全部答错的组也可能出现分数差异，从而产生梯度。实时运行中（1 次）全部答错的组很少，能产生梯度的组与“完全匹配”相当。"
+    },
+    "slot.reward.format.label": {
+      "en": "Format only",
+      "zh": "只看格式"
+    },
+    "slot.reward.format.short": {
+      "en": "format only",
+      "zh": "只看格式"
+    },
+    "slot.reward.format.summary": {
+      "en": "1 for any bare number. Cannot tell right from wrong.",
+      "zh": "纯数字输出得 1 分，不区分答案是否正确。"
+    },
+    "slot.reward.format.watch": {
+      "en": "The reward check warns. Live, about half the first answers were not bare numbers, so it still trained, toward bare numbers.",
+      "zh": "reward 校验会给出警告。实时运行中，起初约一半回答不是纯数字，因此仍会训练，方向是只输出纯数字。"
+    },
+    "slot.advantage.label": {
+      "en": "Advantage",
+      "zh": "Advantage"
+    },
+    "slot.advantage.group_norm.label": {
+      "en": "Group-normalized (GRPO)",
+      "zh": "组内归一化（GRPO）"
+    },
+    "slot.advantage.group_norm.short": {
+      "en": "GRPO",
+      "zh": "GRPO"
+    },
+    "slot.advantage.group_norm.summary": {
+      "en": "(reward - group mean) / group std, per prompt; all-equal groups are skipped.",
+      "zh": "按 prompt 分组计算：(reward − 组均值) / 组标准差；跳过组内得分全部相同的组。"
+    },
+    "slot.advantage.group_norm.watch": {
+      "en": "Same as the cookbook's grouped advantages.",
+      "zh": "与 cookbook 的分组 advantage 相同。"
+    },
+    "slot.advantage.mean_baseline.label": {
+      "en": "Group mean, unscaled",
+      "zh": "组均值，不缩放"
+    },
+    "slot.advantage.mean_baseline.short": {
+      "en": "mean",
+      "zh": "均值"
+    },
+    "slot.advantage.mean_baseline.summary": {
+      "en": "reward - group mean, per prompt, without dividing by the spread.",
+      "zh": "按 prompt 分组计算 reward − 组均值，不再按离散程度缩放。"
+    },
+    "slot.advantage.mean_baseline.watch": {
+      "en": "Same groups train; advantages keep the size of the reward differences.",
+      "zh": "参与训练的组不变，advantage 会保留 reward 差值的大小。"
+    },
+    "slot.advantage.batch_norm.label": {
+      "en": "Batch baseline",
+      "zh": "batch 基线"
+    },
+    "slot.advantage.batch_norm.short": {
+      "en": "batch",
+      "zh": "batch"
+    },
+    "slot.advantage.batch_norm.summary": {
+      "en": "(reward - batch mean) / batch std: the cookbook's Monte-Carlo + ReB for one turn.",
+      "zh": "(reward − batch 均值) / batch 标准差：cookbook 里单轮情况下的 Monte-Carlo + ReB。"
+    },
+    "slot.advantage.batch_norm.watch": {
+      "en": "All-equal groups train too: more train tokens and cost per step.",
+      "zh": "组内得分全部相同的组也会参与训练，因此每步的 train token 用量和费用会增加。"
+    },
+    "slot.loss_fn.label": {
+      "en": "RL loss",
+      "zh": "RL loss"
+    },
+    "slot.loss_fn.importance_sampling.label": {
+      "en": "importance_sampling",
+      "zh": "importance_sampling"
+    },
+    "slot.loss_fn.importance_sampling.short": {
+      "en": "IS",
+      "zh": "IS"
+    },
+    "slot.loss_fn.importance_sampling.summary": {
+      "en": "Policy gradient corrected by the trainer/sampler probability ratio.",
+      "zh": "使用 trainer 与 sampler 的概率比，校正策略梯度。"
+    },
+    "slot.loss_fn.importance_sampling.watch": {
+      "en": "Returns the rollout_corr/* metrics, so the sampler-trainer KL is charted.",
+      "zh": "返回 rollout_corr/* 指标，可据此绘制 sampler–trainer KL 曲线。"
+    },
+    "slot.loss_fn.ppo.label": {
+      "en": "ppo",
+      "zh": "ppo"
+    },
+    "slot.loss_fn.ppo.short": {
+      "en": "ppo",
+      "zh": "ppo"
+    },
+    "slot.loss_fn.ppo.summary": {
+      "en": "The same ratio, clipped. A policy loss only; there is no critic.",
+      "zh": "对同一概率比进行截断。仅包含策略 loss，不使用 critic。"
+    },
+    "slot.loss_fn.ppo.watch": {
+      "en": "No rollout_corr/* metrics were published for ppo, so the KL chart stays empty.",
+      "zh": "ppo 未发布 rollout_corr/* 指标，因此 KL 图表没有数据。"
+    },
+    "slot.loss_fn.cispo.label": {
+      "en": "cispo",
+      "zh": "cispo"
+    },
+    "slot.loss_fn.cispo.short": {
+      "en": "cispo",
+      "zh": "cispo"
+    },
+    "slot.loss_fn.cispo.summary": {
+      "en": "Clips the importance weight instead of the update.",
+      "zh": "截断的是重要性权重，而不是更新量。"
+    },
+    "slot.loss_fn.cispo.watch": {
+      "en": "The cookbook's multi-turn code RL used it. No KL chart, as with ppo.",
+      "zh": "cookbook 的多轮代码 RL 使用此 loss。与 ppo 一样，不提供 KL 图表。"
+    },
+    "slot.rebind_every.label": {
+      "en": "Sampler sync",
+      "zh": "Sampler 同步"
+    },
+    "slot.rebind_every.1.label": {
+      "en": "Every step",
+      "zh": "每一步"
+    },
+    "slot.rebind_every.1.short": {
+      "en": "every step",
+      "zh": "每一步"
+    },
+    "slot.rebind_every.1.summary": {
+      "en": "On-policy: every sample comes from the weights being trained.",
+      "zh": "On-policy：每个样本都来自正在训练的权重。"
+    },
+    "slot.rebind_every.1.watch": {
+      "en": "About 20 s of each step is the rebind (measured).",
+      "zh": "实测每步约有 20 s 用于重新绑定 sampler。"
+    },
+    "slot.rebind_every.2.label": {
+      "en": "Every 2 steps",
+      "zh": "每 2 步"
+    },
+    "slot.rebind_every.2.short": {
+      "en": "every 2",
+      "zh": "每 2 步"
+    },
+    "slot.rebind_every.2.summary": {
+      "en": "Every other step samples from weights one update old.",
+      "zh": "每隔一步，采样所用权重会比当前训练权重少一次更新。"
+    },
+    "slot.rebind_every.2.watch": {
+      "en": "Half the rebinds and MODEL packages; the KL and 'behind' chart show the lag.",
+      "zh": "重新绑定次数和 MODEL 包数量减半，可通过 KL 和“落后次数”图表观察权重差异。"
+    },
+    "slot.rebind_every.4.label": {
+      "en": "Every 4 steps",
+      "zh": "每 4 步"
+    },
+    "slot.rebind_every.4.short": {
+      "en": "every 4",
+      "zh": "每 4 步"
+    },
+    "slot.rebind_every.4.summary": {
+      "en": "Samples can be up to 3 updates behind the trainer.",
+      "zh": "采样所用权重最多可能落后 trainer 3 次更新。"
+    },
+    "slot.rebind_every.4.watch": {
+      "en": "Faster steps, more off-policy data for importance_sampling to correct.",
+      "zh": "每步耗时更短，但需要 importance_sampling 校正的 off-policy 数据更多。"
+    },
+    "param.base_model.label": {
+      "en": "Base model",
+      "zh": "基座模型"
+    },
+    "param.steps.label": {
+      "en": "RL steps",
+      "zh": "RL 步数"
+    },
+    "param.prompts_per_step.label": {
+      "en": "Prompts per step",
+      "zh": "每步 prompt 数"
+    },
+    "param.group_size.label": {
+      "en": "Samples per prompt",
+      "zh": "每个 prompt 的采样数"
+    },
+    "param.learning_rate.label": {
+      "en": "Learning rate",
+      "zh": "学习率"
+    },
+    "param.temperature.label": {
+      "en": "Sampling temperature",
+      "zh": "采样温度"
+    },
+    "param.eval_size.label": {
+      "en": "Held-out problems",
+      "zh": "留出题目数"
+    },
+    "param.save_checkpoint.label": {
+      "en": "Save a resumable checkpoint",
+      "zh": "保存可恢复训练的 checkpoint"
+    },
+    "param.save_checkpoint.help": {
+      "en": "save_state took 53 s when measured.",
+      "zh": "实测 save_state 耗时 53 s。"
+    },
+    "param.loss_fn.label": {
+      "en": "RL loss",
+      "zh": "RL loss"
+    },
+    "param.rebind_every.label": {
+      "en": "Rebind the sampler every",
+      "zh": "Sampler 重新绑定间隔（步）"
+    },
+    "param.rebind_every.help": {
+      "en": "Steps between save_weights_and_get_sampling_client calls; 1 keeps sampling on-policy.",
+      "zh": "两次 save_weights_and_get_sampling_client 调用之间的步数；设为 1 可保持 on-policy 采样。"
+    },
+    "param.max_tokens.label": {
+      "en": "Max tokens per completion",
+      "zh": "每个 completion 的最大 token 数"
+    },
+    "param.max_tokens.help": {
+      "en": "The service minimum is 512; lower values are raised to 512.",
+      "zh": "服务允许的最小值为 512，低于此值时会自动调整为 512。"
+    },
+    "param.seed.label": {
+      "en": "Prompt seed",
+      "zh": "Prompt 随机种子"
+    },
+    "param.lora_rank.label": {
+      "en": "LoRA rank",
+      "zh": "LoRA rank"
+    },
+    "param.lora_alpha.label": {
+      "en": "LoRA alpha",
+      "zh": "LoRA alpha"
+    },
+    "param.adam_beta1.label": {
+      "en": "Adam beta1",
+      "zh": "Adam beta1"
+    },
+    "param.adam_beta2.label": {
+      "en": "Adam beta2",
+      "zh": "Adam beta2"
+    },
+    "param.adam_eps.label": {
+      "en": "Adam epsilon",
+      "zh": "Adam epsilon"
+    },
+    "param.weight_decay.label": {
+      "en": "Weight decay",
+      "zh": "权重衰减（weight decay）"
+    },
+    "metric.reward_mean.label": {
+      "en": "Mean reward",
+      "zh": "平均 reward"
+    },
+    "metric.groups_with_signal.label": {
+      "en": "Groups with signal",
+      "zh": "有训练信号的组"
+    },
+    "metric.sampler_trainer_kl.label": {
+      "en": "Sampler-trainer KL (k3)",
+      "zh": "Sampler–trainer KL（k3）"
+    },
+    "metric.updates_behind.label": {
+      "en": "Sampler behind the trainer (updates)",
+      "zh": "Sampler 落后于 trainer 的更新次数"
+    },
+    "metric.truncated.label": {
+      "en": "Truncated completions",
+      "zh": "截断的 completion"
+    }
+  },
+  "events": {
+    "max_tokens is at least 512, the service minimum; completions end at the first newline.": "max_tokens 至少为 512，即服务允许的最小值；completion 在首个换行处结束。",
+    "Held-out problems, greedy answers: base model vs trained weights": "留出题目上的贪心解码：对比基座模型与训练后模型",
+    "Held-out problems answered correctly": "答对的留出题目数",
+    "correct": "正确",
+    "correct, with commas": "正确答案，含千分位逗号",
+    "off by 10": "与正确答案相差 10",
+    "wrong": "错误",
+    "no number": "没有数字",
+    "Correct answers score above wrong ones": "正确答案的得分高于错误答案",
+    "Otherwise RL moves the model away from correct answers, or nowhere.": "否则，RL 可能使模型更难生成正确答案，或无法带来改善。",
+    "Not every case scores the same": "不同测试情况的得分不完全相同",
+    "A constant reward makes every group all-equal: zero advantage, no gradient, tokens spent for nothing.": "reward 恒定时，各组内得分全部相同，advantage 为零，无法产生梯度；消耗 token 也不会产生训练效果。",
+    "Final weights for sampling or deployment": "最终权重，可用于采样或部署"
+  }
+}

@@ -1,0 +1,264 @@
+{
+  "id": "dpo-facts",
+  "order": 3,
+  "engine": "training-session",
+  "title": "Write the loss yourself: DPO on preference pairs",
+  "technique": "Preference · custom loss",
+  "summary": "DPO is not one of the service's losses. The loop computes it in your process from forward log-probs and trains it through importance_sampling at ratio 1. Swap in IPO or a hinge, or write your own.",
+  "status": "live-verified",
+  "probe_example": "What is the codename of project Alder?",
+  "evidence": {
+    "basis": "live run r-261029-035938-af86 of this template",
+    "date": "2026-10-29",
+    "region": "us-west-2",
+    "model": "openai/gpt-oss-20b",
+    "duration_s": 149,
+    "cost_usd": 0.00203,
+    "note": "Live on 2026-10-29: the custom loss trains (0.69 to 0.0001, every pair preferred, implicit rewards +2.2 chosen and -7.5 rejected), but greedy answers do not become the chosen ones (0 of 8) and drift from the base model's. DPO widens the gap between the two answers; for facts the base model cannot know, the chosen answer stays unlikely to be generated. IPO and hinge ran live once each on 2026-11-02: IPO's implicit-reward margin settled at 0.47, near its 0.5 target, where DPO's ran to 9.6; hinge's loss reached 0 by step 3. Neither changed the greedy answers (0 of 8 chosen), as with DPO."
+  },
+  "you_write": [
+    "preference_loss.py",
+    "data.py",
+    "loop.py"
+  ],
+  "aws_runs": [
+    "create session",
+    "forward",
+    "forward_backward",
+    "optim_step",
+    "save weights + rebind",
+    "sample"
+  ],
+  "you_will_see": [
+    "A loss the service does not ship, computed between two API calls in your process",
+    "One extra forward per step, billed as train tokens: the price of a custom loss",
+    "Loss, pairs preferred and the implicit rewards of chosen and rejected answers per step"
+  ],
+  "files": [
+    "loop.py",
+    "preference_loss.py",
+    "data.py"
+  ],
+  "metrics": [
+    {
+      "key": "loss",
+      "label": "Preference loss",
+      "format": "0.000"
+    },
+    {
+      "key": "pairs_preferred",
+      "label": "Pairs preferred correctly",
+      "format": "0%",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "chosen_reward",
+      "label": "Implicit reward, chosen",
+      "format": "0.000"
+    },
+    {
+      "key": "rejected_reward",
+      "label": "Implicit reward, rejected",
+      "format": "0.000"
+    }
+  ],
+  "params": [
+    {
+      "key": "base_model",
+      "label": "Base model",
+      "type": "model",
+      "default": "openai/gpt-oss-20b"
+    },
+    {
+      "key": "steps",
+      "label": "Training steps",
+      "type": "int",
+      "default": 8,
+      "min": 1,
+      "max": 40
+    },
+    {
+      "key": "beta",
+      "label": "Beta",
+      "type": "float",
+      "default": 0.1,
+      "min": 0.01,
+      "max": 1.0,
+      "help": "Scales the margin inside the loss; the slot's loss_and_grad receives it."
+    },
+    {
+      "key": "learning_rate",
+      "label": "Learning rate",
+      "type": "float",
+      "default": 0.0002,
+      "min": 1e-06,
+      "max": 0.01
+    },
+    {
+      "key": "lora_rank",
+      "label": "LoRA rank",
+      "type": "int",
+      "default": 32,
+      "min": 1,
+      "max": 256,
+      "advanced": true
+    },
+    {
+      "key": "lora_alpha",
+      "label": "LoRA alpha",
+      "type": "int",
+      "default": 64,
+      "min": 1,
+      "max": 512,
+      "advanced": true
+    },
+    {
+      "key": "adam_beta1",
+      "label": "Adam beta1",
+      "type": "float",
+      "default": 0.9,
+      "min": 0,
+      "max": 1,
+      "advanced": true
+    },
+    {
+      "key": "adam_beta2",
+      "label": "Adam beta2",
+      "type": "float",
+      "default": 0.999,
+      "min": 0,
+      "max": 1,
+      "advanced": true
+    },
+    {
+      "key": "adam_eps",
+      "label": "Adam epsilon",
+      "type": "float",
+      "default": 1e-08,
+      "min": 0,
+      "max": 1,
+      "advanced": true
+    },
+    {
+      "key": "weight_decay",
+      "label": "Weight decay",
+      "type": "float",
+      "default": 0.01,
+      "min": 0,
+      "max": 1,
+      "advanced": true
+    }
+  ],
+  "estimate": {"steps": "steps", "unbilled_params": []},
+  "loop": {
+    "driver": "client",
+    "header": "for step in range(steps)",
+    "header_out": "",
+    "before": [
+      "create_session",
+      "load_tokenizer",
+      "build_batch",
+      "sample",
+      "forward"
+    ],
+    "after": [
+      "save_weights_and_rebind",
+      "sample",
+      "compare",
+      "stop_session"
+    ],
+    "nodes": [
+      {
+        "op": "forward",
+        "lane": "aws",
+        "title": "forward",
+        "call": "tc.forward(pairs)",
+        "out": "per-token log-probs, no gradient",
+        "primitive": "forward"
+      },
+      {
+        "op": "preference_loss",
+        "lane": "client",
+        "title": "Your loss",
+        "call": "loss_and_grad(margin, beta)",
+        "slot": "loss",
+        "out": "advantage = -dloss/dlogp"
+      },
+      {
+        "op": "forward_backward",
+        "lane": "aws",
+        "title": "forward_backward",
+        "call": "tc.forward_backward(datums, \"importance_sampling\")",
+        "out": "your loss's gradient, on the GPU",
+        "primitive": "forward_backward"
+      },
+      {
+        "op": "optim_step",
+        "lane": "aws",
+        "title": "optim_step",
+        "call": "tc.optim_step(adam)",
+        "out": "next step",
+        "primitive": "optim_step"
+      }
+    ]
+  },
+  "slots": [
+    {
+      "key": "loss",
+      "node": "preference_loss",
+      "label": "Preference loss",
+      "file": "preference_loss.py",
+      "contract": "loss_and_grad(margin: float, beta: float) -> tuple[float, float]",
+      "function": "loss_and_grad",
+      "editable": true,
+      "default": "dpo",
+      "variants": [
+        {
+          "id": "dpo",
+          "label": "DPO",
+          "file": "preference_loss.py",
+          "summary": "-log sigmoid(beta * margin): push the margin wider, ever more gently.",
+          "watch": "The loss falls fast, then flattens as the sigmoid saturates.",
+          "short": "DPO"
+        },
+        {
+          "id": "ipo",
+          "label": "IPO",
+          "file": "variants/preference_ipo.py",
+          "summary": "(margin - 1/(2 beta))^2: pull the margin to a fixed target.",
+          "watch": "The margin stops growing near its target instead of running away.",
+          "short": "IPO"
+        },
+        {
+          "id": "hinge",
+          "label": "Hinge (SLiC)",
+          "file": "variants/preference_hinge.py",
+          "summary": "max(0, 1 - beta * margin): full push until a pair is won, then none.",
+          "watch": "Every pair pushes equally until its scaled margin passes 1.",
+          "short": "hinge"
+        }
+      ]
+    },
+    {
+      "key": "data",
+      "node": null,
+      "label": "Preference pairs",
+      "file": "data.py",
+      "contract": "PAIRS: list[tuple[str, str, str]]",
+      "function": "PAIRS",
+      "editable": true,
+      "default": "facts",
+      "variants": [
+        {
+          "id": "facts",
+          "label": "Made-up facts, right vs wrong",
+          "file": "data.py",
+          "summary": "Eight questions, each with a chosen and a rejected answer.",
+          "watch": "Edit them: pairs are scored in your process; only token ids reach the service.",
+          "short": "facts"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "events": {
+    "Every Adam parameter is passed explicitly. The SDK defaults (beta2 0.999, weight decay 0.01) differ from Tinker's, and nothing warns you when a ported script picks them up.": "所有 Adam 参数均显式传入。SDK 的默认值（beta2 0.999、weight decay 0.01）与 Tinker 不同，从 Tinker 移植脚本时，如果使用了这些默认值，SDK 不会提示差异。",
+    "The session is stopped in a finally block, on success, error and Stop. An idle session bills no tokens but keeps holding one of your concurrency slots.": "无论运行成功、出错还是手动停止，都会在 finally 块中停止 session。session 空闲时不产生 token 费用，但仍会占用一个并发名额。",
+    "The base model is sampled through this session (create_sampling_client with an empty ARN). ServiceClient.create_sampling_client(base_model=...) would open a second session.": "基座模型复用当前 session 进行采样，调用 create_sampling_client 时传入空 ARN。若使用 ServiceClient.create_sampling_client(base_model=...)，则会创建第二个 session。",
+    "Stopped while the session was starting. If it came up anyway it is listed on the Sessions page; stop it there so it does not hold quota.": "运行在 session 启动过程中被停止。如果 session 随后仍成功启动，会显示在容量页上；请前往该页停止它，释放并发配额。",
+    "Trained weights for sampling or deployment": "训练后的权重，可用于采样或部署",
+    "Weights + optimizer state; resume training from here": "权重 + 优化器状态；可用于恢复训练",
+    "Model-generated code runs in AgentCore Runtime sessions under the sandbox's own execution role, not in this process, which holds this machine's AWS credentials and the training session.": "模型生成的代码在 AgentCore Runtime session 中以沙箱自己的执行角色运行，不在本地进程中运行；本地进程持有本机的 AWS 凭证和 training session。",
+    "New sandbox sessions are opened at most 20 per second and throttling is retried a few times. The account quota is 25 per second; hundreds opened at once were throttled.": "每秒最多新建 20 个沙箱 session，被限流时会有限次重试。账号配额为每秒 25 个；实测同时新建数百个会被限流。",
+    "Every sandbox session this run opens is stopped in a finally block, on success, error and Stop. A live session bills for its memory until it stops or idles out.": "无论运行成功、出错还是手动停止，本次运行新建的每个沙箱 session 都会在 finally 块中停止。实时运行的 session 在停止或空闲超时之前，一直按内存计费。",
+    "Each sandbox's first answer must come from the same sandbox_exec.py as this run's copy, and from a microVM no other session has used; otherwise the run stops with an error.": "每个沙箱的首次应答必须来自与本次运行相同版本的 sandbox_exec.py，且来自未被其他 session 使用过的 microVM；否则运行报错并停止。"
+  }
+}

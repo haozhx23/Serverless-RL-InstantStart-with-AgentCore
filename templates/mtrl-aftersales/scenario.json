@@ -1,0 +1,278 @@
+{
+  "id": "mtrl-aftersales",
+  "order": 10,
+  "engine": "mtrl",
+  "title": "Resolve after-sales tickets with tools",
+  "technique": "Agent RL · multi turn",
+  "summary": "AgentCore Runtime hosts an after-sales agent, its business tools and reward. The agent checks the order, delivery, policy, customer history and stock, then decides refund, exchange, reject or escalate. SageMaker AI invokes the runtime for each rollout and trains the model.",
+  "status": "derived",
+  "evidence": {
+    "basis": "260824 after-sales sample",
+    "date": "2026-08-24",
+    "region": "us-west-2",
+    "model": "openai-reasoning-gpt-oss-20b",
+    "duration_s": null,
+    "cost_usd": null,
+    "note": "Agent, tools, reward and the AgentCore deployment were verified on 2026-08-24. The first live MTRL job ran on 2026-11-06 with the smallest settings (1 step, 32 prompts x 2 rollouts, 32 training / 8 validation tickets): it completed in 557 s, cost $0.196 at list price for the tokens the job reported, and registered a model package. The base model already scored 1.0 on all 80 rollouts, so the run shows the pipeline works, not that training helps. The default settings have not run live."
+  },
+  "you_write": [
+    "sample/agent.py",
+    "sample/env.py",
+    "sample/reward.py"
+  ],
+  "aws_runs": [
+    "the training loop",
+    "sampling",
+    "rollouts to your agent",
+    "advantages",
+    "updates",
+    "checkpoints"
+  ],
+  "you_will_see": [
+    "The reward proven against 8 scripted policies before anything is submitted",
+    "SageMaker AI calling your agent: the rollouts it handled, from its AgentCore logs, on the YOU track",
+    "Job phases on the AWS track; reward and turns per step from MLflow; billed tokens reported by the job"
+  ],
+  "files": [
+    "loop.py",
+    "reward_check.py",
+    "sample/agent.py",
+    "sample/env.py",
+    "sample/rules.py",
+    "sample/reward.py",
+    "sample/rollout_handler.py",
+    "deploy/main.py"
+  ],
+  "metrics": [
+    {
+      "key": "rollout/reward/mean",
+      "label": "Mean reward",
+      "format": "0.000",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "rollout/turns/mean",
+      "label": "Turns per rollout",
+      "format": "0.0"
+    },
+    {
+      "key": "training/num_trajectories",
+      "label": "Trajectories per step",
+      "format": "0"
+    },
+    {
+      "key": "training/total_tokens",
+      "label": "Tokens per step",
+      "format": "0"
+    }
+  ],
+  "params": [
+    {
+      "key": "model",
+      "label": "Base model",
+      "type": "mtrl_model",
+      "default": "openai-reasoning-gpt-oss-20b"
+    },
+    {
+      "key": "max_steps",
+      "label": "Training steps",
+      "type": "int",
+      "default": 2,
+      "min": 1,
+      "max": 1000,
+      "help": "Start with a few steps: one step is global batch x group size rollouts."
+    },
+    {
+      "key": "global_batch_size",
+      "label": "Prompts per step",
+      "type": "choice",
+      "default": 32,
+      "choices": [
+        32,
+        64,
+        128
+      ]
+    },
+    {
+      "key": "group_size",
+      "label": "Rollouts per prompt",
+      "type": "int",
+      "default": 8,
+      "min": 2,
+      "max": 32,
+      "help": "2 is enough to test the pipeline but makes advantages very noisy; use 8 to look at learning."
+    },
+    {
+      "key": "loss_fn",
+      "label": "RL loss",
+      "type": "choice",
+      "default": "importance_sampling",
+      "choices": [
+        "importance_sampling",
+        "ppo",
+        "cispo"
+      ]
+    },
+    {
+      "key": "learning_rate",
+      "label": "Learning rate",
+      "type": "float",
+      "default": 1e-05,
+      "min": 0,
+      "max": 0.01
+    },
+    {
+      "key": "max_steps_off_policy",
+      "label": "Steps off policy",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 10,
+      "help": "0 keeps rollouts synchronous, one less variable on a first run. The service default is 3."
+    },
+    {
+      "key": "sampling_max_tokens",
+      "label": "Max tokens per turn",
+      "type": "int",
+      "default": 4096,
+      "min": 512,
+      "max": 8192
+    },
+    {
+      "key": "train_size",
+      "label": "Training tickets",
+      "type": "int",
+      "default": 128,
+      "min": 32,
+      "max": 5000
+    },
+    {
+      "key": "eval_size",
+      "label": "Validation tickets",
+      "type": "int",
+      "default": 32,
+      "min": 8,
+      "max": 1000
+    },
+    {
+      "key": "temperature",
+      "label": "Sampling temperature",
+      "type": "float",
+      "default": 1.0,
+      "min": 0,
+      "max": 2,
+      "advanced": true
+    },
+    {
+      "key": "advantage_method",
+      "label": "Advantage method",
+      "type": "choice",
+      "default": "group_based",
+      "choices": [
+        "group_based",
+        "group_based_per_turn",
+        "rloo",
+        "monte_carlo",
+        "reinforce_pp",
+        "reinforce_pp_baseline",
+        "opo",
+        "grpo_passk",
+        "gpg"
+      ],
+      "advanced": true,
+      "help": "group_based_per_turn needs per-turn rewards (PER_TURN_REWARD=1 in the agent); its effect is undocumented."
+    },
+    {
+      "key": "lora_rank",
+      "label": "LoRA rank",
+      "type": "int",
+      "default": 32,
+      "min": 16,
+      "max": 64,
+      "advanced": true
+    },
+    {
+      "key": "rollout_max_concurrency",
+      "label": "Concurrent rollouts",
+      "type": "int",
+      "default": 96,
+      "min": 32,
+      "max": 96,
+      "advanced": true
+    },
+    {
+      "key": "reward_check_cases",
+      "label": "Reward check tickets per policy",
+      "type": "int",
+      "default": 24,
+      "min": 8,
+      "max": 200,
+      "advanced": true
+    },
+    {
+      "key": "dataset_seed",
+      "label": "Dataset seed",
+      "type": "int",
+      "default": 20260824,
+      "min": 0,
+      "max": 2147483647,
+      "advanced": true
+    }
+  ],
+  "loop": {
+    "driver": "aws",
+    "header": "SageMaker AI's loop",
+    "header_out": "",
+    "before": [
+      "reward_check",
+      "build_dataset",
+      "upload_dataset",
+      "validate",
+      "submit"
+    ],
+    "after": [],
+    "nodes": [
+      {
+        "op": "platform_sample",
+        "lane": "aws",
+        "title": "Sample a turn",
+        "call": "inside the job",
+        "observed": false,
+        "out": "the rollout, turn by turn"
+      },
+      {
+        "op": "agent_rollouts",
+        "lane": "client",
+        "title": "Your agent",
+        "call": "sample/agent.py in AgentCore Runtime",
+        "out": "tool calls, reward",
+        "file": "sample/agent.py"
+      },
+      {
+        "op": "platform_advantage",
+        "lane": "aws",
+        "title": "Advantages",
+        "call": "inside the job",
+        "observed": false,
+        "out": ""
+      },
+      {
+        "op": "platform_update",
+        "lane": "aws",
+        "title": "Update the weights",
+        "call": "inside the job",
+        "observed": false,
+        "out": ""
+      },
+      {
+        "op": "platform_checkpoint",
+        "lane": "aws",
+        "title": "Checkpoint",
+        "call": "inside the job",
+        "observed": false,
+        "out": "next step"
+      }
+    ]
+  }
+}

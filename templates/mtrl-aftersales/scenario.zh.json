@@ -1,0 +1,216 @@
+{
+  "fields": {
+    "title": {
+      "en": "Resolve after-sales tickets with tools",
+      "zh": "售后工单处理与工具调用"
+    },
+    "technique": {
+      "en": "Agent RL · multi turn",
+      "zh": "Agent RL · 多轮"
+    },
+    "summary": {
+      "en": "AgentCore Runtime hosts an after-sales agent, its business tools and reward. The agent checks the order, delivery, policy, customer history and stock, then decides refund, exchange, reject or escalate. SageMaker AI invokes the runtime for each rollout and trains the model.",
+      "zh": "AgentCore Runtime 托管售后 agent、业务工具和 reward。agent 查询订单、物流、售后政策、客户历史和库存，再决定退款、换货、拒绝或升级处理。SageMaker AI 回调每条 rollout，并训练模型。"
+    },
+    "you_will_see.0": {
+      "en": "The reward proven against 8 scripted policies before anything is submitted",
+      "zh": "提交前使用 8 种预设策略验证 reward 评分的有效性"
+    },
+    "you_will_see.1": {
+      "en": "SageMaker AI calling your agent: the rollouts it handled, from its AgentCore logs, on the YOU track",
+      "zh": "从 AgentCore 日志读取 agent 处理的 rollout，展示在“自定义代码”轨道上"
+    },
+    "you_will_see.2": {
+      "en": "Job phases on the AWS track; reward and turns per step from MLflow; billed tokens reported by the job",
+      "zh": "在 AWS 轨道查看任务阶段，从 MLflow 查看每步 reward 和轮数；计费 token 用量由任务报告"
+    },
+    "evidence.note": {
+      "en": "Agent, tools, reward and the AgentCore deployment were verified on 2026-08-24. The first live MTRL job ran on 2026-11-06 with the smallest settings (1 step, 32 prompts x 2 rollouts, 32 training / 8 validation tickets): it completed in 557 s, cost $0.196 at list price for the tokens the job reported, and registered a model package. The base model already scored 1.0 on all 80 rollouts, so the run shows the pipeline works, not that training helps. The default settings have not run live.",
+      "zh": "agent、工具、reward 和 AgentCore 部署已于 2026-08-24 验证。2026-11-06 以最小设置首次实时运行 MTRL 任务（1 步，32 个 prompt × 2 条 rollout，训练 32 张、验证 8 张工单）：557 秒完成，按任务报告的 token 和目录价计 $0.196，并注册了模型包。基座模型在全部 80 条 rollout 上已得满分，因此这次运行只说明流程可用，不能说明训练有效。默认设置尚未实时运行。"
+    },
+    "loop.header": {
+      "en": "SageMaker AI's loop",
+      "zh": "SageMaker AI 的循环"
+    },
+    "node.platform_sample.title": {
+      "en": "Sample a turn",
+      "zh": "采样一轮"
+    },
+    "node.platform_sample.call": {
+      "en": "inside the job",
+      "zh": "在任务内部"
+    },
+    "node.platform_sample.out": {
+      "en": "the rollout, turn by turn",
+      "zh": "逐轮生成的 rollout"
+    },
+    "node.agent_rollouts.title": {
+      "en": "Your agent",
+      "zh": "自定义 agent"
+    },
+    "node.agent_rollouts.call": {
+      "en": "sample/agent.py in AgentCore Runtime",
+      "zh": "AgentCore Runtime 中的 sample/agent.py"
+    },
+    "node.agent_rollouts.out": {
+      "en": "tool calls, reward",
+      "zh": "工具调用、reward"
+    },
+    "node.platform_advantage.title": {
+      "en": "Advantages",
+      "zh": "计算 advantage"
+    },
+    "node.platform_advantage.call": {
+      "en": "inside the job",
+      "zh": "在任务内部"
+    },
+    "node.platform_update.title": {
+      "en": "Update the weights",
+      "zh": "更新权重"
+    },
+    "node.platform_update.call": {
+      "en": "inside the job",
+      "zh": "在任务内部"
+    },
+    "node.platform_checkpoint.title": {
+      "en": "Checkpoint",
+      "zh": "保存 checkpoint"
+    },
+    "node.platform_checkpoint.call": {
+      "en": "inside the job",
+      "zh": "在任务内部"
+    },
+    "node.platform_checkpoint.out": {
+      "en": "next step",
+      "zh": "下一步"
+    },
+    "param.model.label": {
+      "en": "Base model",
+      "zh": "基座模型"
+    },
+    "param.max_steps.label": {
+      "en": "Training steps",
+      "zh": "训练步数"
+    },
+    "param.max_steps.help": {
+      "en": "Start with a few steps: one step is global batch x group size rollouts.",
+      "zh": "建议先运行少量步骤。每步的 rollout 数为 global batch × group size。"
+    },
+    "param.global_batch_size.label": {
+      "en": "Prompts per step",
+      "zh": "每步 prompt 数"
+    },
+    "param.group_size.label": {
+      "en": "Rollouts per prompt",
+      "zh": "每个 prompt 的 rollout 数"
+    },
+    "param.group_size.help": {
+      "en": "2 is enough to test the pipeline but makes advantages very noisy; use 8 to look at learning.",
+      "zh": "设为 2 可验证运行流程，但 advantage 的噪声很大；观察学习效果时请使用 8。"
+    },
+    "param.loss_fn.label": {
+      "en": "RL loss",
+      "zh": "RL loss"
+    },
+    "param.learning_rate.label": {
+      "en": "Learning rate",
+      "zh": "学习率"
+    },
+    "param.max_steps_off_policy.label": {
+      "en": "Steps off policy",
+      "zh": "允许 off-policy 的步数"
+    },
+    "param.max_steps_off_policy.help": {
+      "en": "0 keeps rollouts synchronous, one less variable on a first run. The service default is 3.",
+      "zh": "设为 0 可保持 rollout 同步，减少首次运行时的影响因素。服务默认值为 3。"
+    },
+    "param.sampling_max_tokens.label": {
+      "en": "Max tokens per turn",
+      "zh": "每轮最大 token 数"
+    },
+    "param.train_size.label": {
+      "en": "Training tickets",
+      "zh": "训练工单数"
+    },
+    "param.eval_size.label": {
+      "en": "Validation tickets",
+      "zh": "验证工单数"
+    },
+    "param.temperature.label": {
+      "en": "Sampling temperature",
+      "zh": "采样温度"
+    },
+    "param.advantage_method.label": {
+      "en": "Advantage method",
+      "zh": "Advantage 计算方式"
+    },
+    "param.advantage_method.help": {
+      "en": "group_based_per_turn needs per-turn rewards (PER_TURN_REWARD=1 in the agent); its effect is undocumented.",
+      "zh": "group_based_per_turn 需要逐轮 reward，需在 agent 中设置 PER_TURN_REWARD=1；文档未说明该方式的效果。"
+    },
+    "param.lora_rank.label": {
+      "en": "LoRA rank",
+      "zh": "LoRA rank"
+    },
+    "param.rollout_max_concurrency.label": {
+      "en": "Concurrent rollouts",
+      "zh": "并发 rollout 数"
+    },
+    "param.reward_check_cases.label": {
+      "en": "Reward check tickets per policy",
+      "zh": "每种策略用于 reward 校验的工单数"
+    },
+    "param.dataset_seed.label": {
+      "en": "Dataset seed",
+      "zh": "数据集随机种子"
+    },
+    "metric.rollout/reward/mean.label": {
+      "en": "Mean reward",
+      "zh": "平均 reward"
+    },
+    "metric.rollout/turns/mean.label": {
+      "en": "Turns per rollout",
+      "zh": "每条 rollout 的轮数"
+    },
+    "metric.training/num_trajectories.label": {
+      "en": "Trajectories per step",
+      "zh": "每步的轨迹数"
+    },
+    "metric.training/total_tokens.label": {
+      "en": "Tokens per step",
+      "zh": "每步的 token 数"
+    }
+  },
+  "events": {
+    "Follows the SOP exactly": "严格按 SOP 执行",
+    "Skips the delivery lookup and counts the window from the order date": "跳过物流查询，从下单日期起算售后期限",
+    "Always exchanges quality claims without checking stock": "不查询库存，对质量问题一律换货",
+    "Calls every tool, then always rejects (reward-hacking probe)": "调用所有工具后，一律拒绝请求（用于检测 reward hacking）",
+    "Calls the same tool repeatedly before submitting": "提交前反复调用同一个工具",
+    "Right decision, submitted twice in parallel": "裁决正确，但并行提交了两次",
+    "Writes <tool_call> text blocks instead of native tool calls": "用 <tool_call> 文本块代替原生工具调用",
+    "Answers in prose, never calls a tool": "只用自然语言回答，不调用工具",
+    "perfect scores 1.0": "perfect 策略得分为 1.0",
+    "If the SOP-following policy cannot score full marks, the tools do not expose enough to solve the task.": "如果遵循 SOP 的策略无法获得满分，说明工具提供的信息不足以完成任务。",
+    "malformed scores 0": "malformed 策略得分为 0",
+    "An unparsable answer must get no partial credit, or a lenient parser becomes a reward hack.": "无法解析的答案不应获得部分得分，否则模型可能利用宽松的解析规则获取 reward。",
+    "always_reject stays below 0.5": "always_reject 策略得分低于 0.5",
+    "Calling every tool must not earn a high score on its own; the outcome has to be right.": "仅调用所有工具不应获得高分，最终裁决也必须正确。",
+    "skip_logistics scores well below perfect": "skip_logistics 策略得分明显低于 perfect",
+    "Skipping a required lookup must cost reward.": "跳过必要查询时，必须扣减 reward。",
+    "blind_exchange scores well below perfect": "blind_exchange 策略得分明显低于 perfect",
+    "Guessing the branch without checking stock must cost reward.": "未查询库存就选择处理分支时，必须扣减 reward。",
+    "tool_spam scores below perfect": "tool_spam 策略得分低于 perfect",
+    "Repeated tool calls must cost something, or the model learns to spam (and prefill grows).": "重复调用工具必须受到扣分，否则模型会倾向于无效重复调用，同时增加 prefill 用量。",
+    "double_submit = 0.8 x perfect": "double_submit = 0.8 × perfect",
+    "Submitting several answers to hit one must be penalized.": "通过提交多个答案来尝试命中正确答案时，必须扣分。",
+    "text_protocol = perfect": "text_protocol = perfect",
+    "The text tool-call fallback must work as well as native tool calls.": "文本形式的工具调用必须与原生工具调用同样有效。",
+    "some policy has reward variance": "至少一种策略的 reward 存在差异",
+    "With zero variance inside every group, advantages are zero and there is no gradient.": "如果所有组内的 reward 方差均为零，advantage 也全部为零，无法产生梯度。",
+    "The reward was checked against 8 scripted policies before anything was submitted: the SOP-following policy scores 1.0, the reward-hacking probe stays below 0.5, prose scores 0.": "提交任务前，已用 8 种预设策略校验 reward：遵循 SOP 的策略得 1.0 分，reward hacking 检测策略低于 0.5 分，仅用自然语言回答的策略得 0 分。",
+    "Model package groups, MLflow app and role are passed explicitly. Left out, the SDK would get-or-create default groups and an MLflow app in your account.": "model package group、MLflow app 和角色均显式传入。若省略这些参数，SDK 会在账号中查找或创建默认 model package group 和 MLflow app。",
+    "LoRA adapter trained by the MTRL job": "MTRL 任务训练出的 LoRA adapter",
+    "The agent runtime's version is recorded when the job is submitted and checked again when it ends. The job calls the DEFAULT endpoint, which follows the latest version, so a redeploy during training would change the agent mid-job.": "提交任务时记录 agent runtime 的版本，任务结束时再次核对。任务调用的是 DEFAULT endpoint，它始终指向最新版本，因此训练途中重新部署会在任务中途更换 agent。"
+  }
+}

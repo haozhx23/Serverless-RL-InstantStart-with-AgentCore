@@ -1,0 +1,14 @@
+# runtime state: runs, recordings, settings
+data/
+# build output and dependencies
+frontend/dist/
+frontend/node_modules/
+backend/.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.tsbuildinfo
+# validation build outputs (venvs, packages, raw deploy info with account ID)
+validation/*/build/
+# release output ownership marker
+.srl-release

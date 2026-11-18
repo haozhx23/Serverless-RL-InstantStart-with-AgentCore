@@ -1,0 +1,2116 @@
+{
+ "about": "Function-writing tasks for templates/code-rl. Each has a reference body and plausible wrong ones (the reward check uses them); cases[].expected were computed from the reference. The prompt shows the signature, the doc and cases[0].",
+ "problems": [
+  {
+   "id": "second_largest",
+   "split": "train",
+   "signature": "def second_largest(nums: list[int]) -> int | None:",
+   "doc": "Return the second largest distinct value in nums, or None if there are fewer than two distinct values.",
+   "reference": "    values = sorted(set(nums), reverse=True)\n    return values[1] if len(values) > 1 else None",
+   "wrong": [
+    "    nums = sorted(nums)\n    return nums[-2] if len(nums) > 1 else None",
+    "    values = sorted(set(nums))\n    return values[1] if len(values) > 1 else None"
+   ],
+   "cases": [
+    {
+     "args": [
+      [
+       3,
+       1,
+       2
+      ]
+     ],
+     "expected": 2
+    },
+    {
+     "args": [
+      [
+       5,
+       5,
+       4
+      ]
+     ],
+     "expected": 4
+    },
+    {
+     "args": [
+      [
+       7
+      ]
+     ],
+     "expected": null
+    },
+    {
+     "args": [
+      [
+       2,
+       2
+      ]
+     ],
+     "expected": null
+    },
+    {
+     "args": [
+      [
+       -1,
+       -5,
+       -3
+      ]
+     ],
+     "expected": -3
+    },
+    {
+     "args": [
+      [
+       10,
+       9,
+       10,
+       8
+      ]
+     ],
+     "expected": 9
+    }
+   ]
+  },
+  {
+   "id": "run_length",
+   "split": "train",
+   "signature": "def run_length(s: str) -> str:",
+   "doc": "Run-length encode s: each run of a repeated character becomes the character followed by the run's length.",
+   "reference": "    out, i = [], 0\n    while i < len(s):\n        j = i\n        while j < len(s) and s[j] == s[i]:\n            j += 1\n        out.append(f\"{s[i]}{j - i}\")\n        i = j\n    return \"\".join(out)",
+   "wrong": [
+    "    from collections import Counter\n    return \"\".join(f\"{c}{n}\" for c, n in Counter(s).items())",
+    "    out, i = [], 0\n    while i < len(s):\n        j = i\n        while j < len(s) and s[j] == s[i]:\n            j += 1\n        out.append(s[i] + (str(j - i) if j - i > 1 else \"\"))\n        i = j\n    return \"\".join(out)"
+   ],
+   "cases": [
+    {
+     "args": [
+      "aaabcc"
+     ],
+     "expected": "a3b1c2"
+    },
+    {
+     "args": [
+      ""
+     ],
+     "expected": ""
+    },
+    {
+     "args": [
+      "abc"
+     ],
+     "expected": "a1b1c1"
+    },
+    {
+     "args": [
+      "aabaa"
+     ],
+     "expected": "a2b1a2"
+    },
+    {
+     "args": [
+      "zzzzzzzzzzzz"
+     ],
+     "expected": "z12"
+    }
+   ]
+  },
+  {
+   "id": "balanced",
+   "split": "train",
+   "signature": "def balanced(s: str) -> bool:",
+   "doc": "Return True if every bracket in s, of the kinds (), [] and {}, is closed in the right order. Other characters are ignored.",
+   "reference": "    pairs, stack = {\")\": \"(\", \"]\": \"[\", \"}\": \"{\"}, []\n    for c in s:\n        if c in \"([{\":\n            stack.append(c)\n        elif c in pairs:\n            if not stack or stack.pop() != pairs[c]:\n                return False\n    return not stack",
+   "wrong": [
+    "    return s.count(\"(\") == s.count(\")\") and s.count(\"[\") == s.count(\"]\") and s.count(\"{\") == s.count(\"}\")",
+    "    pairs, stack = {\")\": \"(\", \"]\": \"[\", \"}\": \"{\"}, []\n    for c in s:\n        if c in \"([{\":\n            stack.append(c)\n        elif c in pairs:\n            if not stack or stack.pop() != pairs[c]:\n                return False\n    return True"
+   ],
+   "cases": [
+    {
+     "args": [
+      "([]{})"
+     ],
+     "expected": true
+    },
+    {
+     "args": [
+      "([)]"
+     ],
+     "expected": false
+    },
+    {
+     "args": [
+      "(("
+     ],
+     "expected": false
+    },
+    {
+     "args": [
+      ""
+     ],
+     "expected": true
+    },
+    {
+     "args": [
+      "a(b)c]"
+     ],
+     "expected": false
+    },
+    {
+     "args": [
+      "{[()()]}x"
+     ],
+     "expected": true
+    }
+   ]
+  },
+  {
+   "id": "roman_to_int",
+   "split": "train",
+   "signature": "def roman_to_int(s: str) -> int:",
+   "doc": "Convert a Roman numeral (I, V, X, L, C, D, M, with subtractive pairs such as IV and CM) to an integer.",
+   "reference": "    v = {\"I\": 1, \"V\": 5, \"X\": 10, \"L\": 50, \"C\": 100, \"D\": 500, \"M\": 1000}\n    total = 0\n    for i, c in enumerate(s):\n        if i + 1 < len(s) and v[c] < v[s[i + 1]]:\n            total -= v[c]\n        else:\n            total += v[c]\n    return total",
+   "wrong": [
+    "    v = {\"I\": 1, \"V\": 5, \"X\": 10, \"L\": 50, \"C\": 100, \"D\": 500, \"M\": 1000}\n    return sum(v[c] for c in s)"
+   ],
+   "cases": [
+    {
+     "args": [
+      "III"
+     ],
+     "expected": 3
+    },
+    {
+     "args": [
+      "IV"
+     ],
+     "expected": 4
+    },
+    {
+     "args": [
+      "IX"
+     ],
+     "expected": 9
+    },
+    {
+     "args": [
+      "LVIII"
+     ],
+     "expected": 58
+    },
+    {
+     "args": [
+      "MCMXCIV"
+     ],
+     "expected": 1994
+    },
+    {
+     "args": [
+      "MMXXVI"
+     ],
+     "expected": 2026
+    }
+   ]
+  },
+  {
+   "id": "merge_intervals",
+   "split": "train",
+   "signature": "def merge_intervals(intervals: list[list[int]]) -> list[list[int]]:",
+   "doc": "Merge overlapping or touching [start, end] intervals and return them sorted by start.",
+   "reference": "    out = []\n    for a, b in sorted(intervals):\n        if out and a <= out[-1][1]:\n            out[-1][1] = max(out[-1][1], b)\n        else:\n            out.append([a, b])\n    return out",
+   "wrong": [
+    "    out = []\n    for a, b in intervals:\n        if out and a <= out[-1][1]:\n            out[-1][1] = max(out[-1][1], b)\n        else:\n            out.append([a, b])\n    return out",
+    "    out = []\n    for a, b in sorted(intervals):\n        if out and a < out[-1][1]:\n            out[-1][1] = b\n        else:\n            out.append([a, b])\n    return out"
+   ],
+   "cases": [
+    {
+     "args": [
+      [
+       [
+        1,
+        3
+       ],
+       [
+        2,
+        6
+       ],
+       [
+        8,
+        10
+       ]
+      ]
+     ],
+     "expected": [
+      [
+       1,
+       6
+      ],
+      [
+       8,
+       10
+      ]
+     ]
+    },
+    {
+     "args": [
+      [
+       [
+        5,
+        6
+       ],
+       [
+        1,
+        2
+       ]
+      ]
+     ],
+     "expected": [
+      [
+       1,
+       2
+      ],
+      [
+       5,
+       6
+      ]
+     ]
+    },
+    {
+     "args": [
+      [
+       [
+        1,
+        4
+       ],
+       [
+        4,
+        5
+       ]
+      ]
+     ],
+     "expected": [
+      [
+       1,
+       5
+      ]
+     ]
+    },
+    {
+     "args": [
+      []
+     ],
+     "expected": []
+    },
+    {
+     "args": [
+      [
+       [
+        1,
+        10
+       ],
+       [
+        2,
+        3
+       ]
+      ]
+     ],
+     "expected": [
+      [
+       1,
+       10
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rotate",
+   "split": "train",
+   "signature": "def rotate(xs: list, k: int) -> list:",
+   "doc": "Return xs rotated right by k positions. k may be larger than len(xs) or negative; an empty list stays empty.",
+   "reference": "    if not xs:\n        return []\n    k %= len(xs)\n    return xs[-k:] + xs[:-k] if k else list(xs)",
+   "wrong": [
+    "    return xs[-k:] + xs[:-k]",
+    "    if not xs:\n        return []\n    k %= len(xs)\n    return xs[k:] + xs[:k]"
+   ],
+   "cases": [
+    {
+     "args": [
+      [
+       1,
+       2,
+       3,
+       4,
+       5
+      ],
+      2
+     ],
+     "expected": [
+      4,
+      5,
+      1,
+      2,
+      3
+     ]
+    },
+    {
+     "args": [
+      [
+       1,
+       2,
+       3
+      ],
+      0
+     ],
+     "expected": [
+      1,
+      2,
+      3
+     ]
+    },
+    {
+     "args": [
+      [
+       1,
+       2,
+       3
+      ],
+      4
+     ],
+     "expected": [
+      3,
+      1,
+      2
+     ]
+    },
+    {
+     "args": [
+      [],
+      3
+     ],
+     "expected": []
+    },
+    {
+     "args": [
+      [
+       1,
+       2,
+       3
+      ],
+      -1
+     ],
+     "expected": [
+      2,
+      3,
+      1
+     ]
+    }
+   ]
+  },
+  {
+   "id": "word_counts",
+   "split": "train",
+   "signature": "def word_counts(text: str) -> dict[str, int]:",
+   "doc": "Count the words of text, case-insensitively. Words are separated by whitespace; the characters .,!? around them are not part of the word.",
+   "reference": "    counts = {}\n    for w in text.lower().split():\n        w = w.strip(\".,!?\")\n        if w:\n            counts[w] = counts.get(w, 0) + 1\n    return counts",
+   "wrong": [
+    "    counts = {}\n    for w in text.split():\n        counts[w] = counts.get(w, 0) + 1\n    return counts",
+    "    counts = {}\n    for w in text.lower().split():\n        counts[w.strip(\".,!?\")] = counts.get(w, 0) + 1\n    return counts"
+   ],
+   "cases": [
+    {
+     "args": [
+      "The cat and the hat."
+     ],
+     "expected": {
+      "the": 2,
+      "cat": 1,
+      "and": 1,
+      "hat": 1
+     }
+    },
+    {
+     "args": [
+      ""
+     ],
+     "expected": {}
+    },
+    {
+     "args": [
+      "Hi! hi, HI?"
+     ],
+     "expected": {
+      "hi": 3
+     }
+    },
+    {
+     "args": [
+      "one  two\ttwo"
+     ],
+     "expected": {
+      "one": 1,
+      "two": 2
+     }
+    },
+    {
+     "args": [
+      "... wow ..."
+     ],
+     "expected": {
+      "wow": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "flatten",
+   "split": "train",
+   "signature": "def flatten(nested: list) -> list:",
+   "doc": "Flatten arbitrarily nested lists into one list, keeping the order of the elements.",
+   "reference": "    out = []\n    for x in nested:\n        if isinstance(x, list):\n            out.extend(flatten(x))\n        else:\n            out.append(x)\n    return out",
+   "wrong": [
+    "    out = []\n    for x in nested:\n        if isinstance(x, list):\n            out.extend(x)\n        else:\n            out.append(x)\n    return out"
+   ],
+   "cases": [
+    {
+     "args": [
+      [
+       1,
+       [
+        2,
+        3
+       ],
+       4
+      ]
+     ],
+     "expected": [
+      1,
+      2,
+      3,
+      4
+     ]
+    },
+    {
+     "args": [
+      [
+       [
+        [
+         []
+        ]
+       ]
+      ]
+     ],
+     "expected": []
+    },
+    {
+     "args": [
+      [
+       1,
+       [
+        2,
+        [
+         3,
+         [
+          4
+         ]
+        ]
+       ]
+      ]
+     ],
+     "expected": [
+      1,
+      2,
+      3,
+      4
+     ]
+    },
+    {
+     "args": [
+      []
+     ],
+     "expected": []
+    },
+    {
+     "args": [
+      [
+       "a",
+       [
+        "b"
+       ],
+       [
+        [
+         "c"
+        ]
+       ]
+      ]
+     ],
+     "expected": [
+      "a",
+      "b",
+      "c"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "chunks",
+   "split": "train",
+   "signature": "def chunks(xs: list, n: int) -> list[list]:",
+   "doc": "Split xs into consecutive chunks of n elements; the last chunk may be shorter.",
+   "reference": "    return [xs[i:i + n] for i in range(0, len(xs), n)]",
+   "wrong": [
+    "    return [xs[i:i + n] for i in range(0, len(xs) - n + 1, n)]",
+    "    return [xs[i:i + n] for i in range(0, len(xs), n) if len(xs[i:i + n]) == n]"
+   ],
+   "cases": [
+    {
+     "args": [
+      [
+       1,
+       2,
+       3,
+       4,
+       5
+      ],
+      2
+     ],
+     "expected": [
+      [
+       1,
+       2
+      ],
+      [
+       3,
+       4
+      ],
+      [
+       5
+      ]
+     ]
+    },
+    {
+     "args": [
+      [
+       1,
+       2,
+       3,
+       4
+      ],
+      2
+     ],
+     "expected": [
+      [
+       1,
+       2
+      ],
+      [
+       3,
+       4
+      ]
+     ]
+    },
+    {
+     "args": [
+      [],
+      3
+     ],
+     "expected": []
+    },
+    {
+     "args": [
+      [
+       1
+      ],
+      5
+     ],
+     "expected": [
+      [
+       1
+      ]
+     ]
+    },
+    {
+     "args": [
+      [
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       7
+      ],
+      3
+     ],
+     "expected": [
+      [
+       1,
+       2,
+       3
+      ],
+      [
+       4,
+       5,
+       6
+      ],
+      [
+       7
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "digital_root",
+   "split": "train",
+   "signature": "def digital_root(n: int) -> int:",
+   "doc": "Repeatedly sum the decimal digits of the non-negative integer n until one digit is left, and return it.",
+   "reference": "    while n >= 10:\n        n = sum(int(d) for d in str(n))\n    return n",
+   "wrong": [
+    "    return sum(int(d) for d in str(n))",
+    "    return n % 9"
+   ],
+   "cases": [
+    {
+     "args": [
+      0
+     ],
+     "expected": 0
+    },
+    {
+     "args": [
+      7
+     ],
+     "expected": 7
+    },
+    {
+     "args": [
+      38
+     ],
+     "expected": 2
+    },
+    {
+     "args": [
+      99999
+     ],
+     "expected": 9
+    },
+    {
+     "args": [
+      123456789
+     ],
+     "expected": 9
+    },
+    {
+     "args": [
+      18
+     ],
+     "expected": 9
+    }
+   ]
+  },
+  {
+   "id": "is_prime",
+   "split": "train",
+   "signature": "def is_prime(n: int) -> bool:",
+   "doc": "Return True if n is a prime number. Numbers below 2 are not prime.",
+   "reference": "    if n < 2:\n        return False\n    i = 2\n    while i * i <= n:\n        if n % i == 0:\n            return False\n        i += 1\n    return True",
+   "wrong": [
+    "    for i in range(2, n):\n        if n % i == 0:\n            return False\n    return True",
+    "    if n < 2:\n        return False\n    return all(n % i for i in range(2, int(n ** 0.5)))"
+   ],
+   "cases": [
+    {
+     "args": [
+      0
+     ],
+     "expected": false
+    },
+    {
+     "args": [
+      1
+     ],
+     "expected": false
+    },
+    {
+     "args": [
+      2
+     ],
+     "expected": true
+    },
+    {
+     "args": [
+      9
+     ],
+     "expected": false
+    },
+    {
+     "args": [
+      25
+     ],
+     "expected": false
+    },
+    {
+     "args": [
+      97
+     ],
+     "expected": true
+    },
+    {
+     "args": [
+      7919
+     ],
+     "expected": true
+    },
+    {
+     "args": [
+      -7
+     ],
+     "expected": false
+    }
+   ]
+  },
+  {
+   "id": "snake_case",
+   "split": "train",
+   "signature": "def snake_case(name: str) -> str:",
+   "doc": "Convert a camelCase or PascalCase name to snake_case: an underscore before each upper-case letter (except at the start), all lower case.",
+   "reference": "    out = []\n    for i, c in enumerate(name):\n        if c.isupper() and i > 0:\n            out.append(\"_\")\n        out.append(c.lower())\n    return \"\".join(out)",
+   "wrong": [
+    "    return \"\".join(\"_\" + c.lower() if c.isupper() else c for c in name)",
+    "    return name.lower()"
+   ],
+   "cases": [
+    {
+     "args": [
+      "helloWorld"
+     ],
+     "expected": "hello_world"
+    },
+    {
+     "args": [
+      "HelloWorld"
+     ],
+     "expected": "hello_world"
+    },
+    {
+     "args": [
+      "already"
+     ],
+     "expected": "already"
+    },
+    {
+     "args": [
+      "aBC"
+     ],
+     "expected": "a_b_c"
+    },
+    {
+     "args": [
+      "parseUrlPath"
+     ],
+     "expected": "parse_url_path"
+    }
+   ]
+  },
+  {
+   "id": "missing_number",
+   "split": "train",
+   "signature": "def missing_number(nums: list[int]) -> int:",
+   "doc": "nums holds n distinct numbers taken from 0, 1, ..., n. Return the one that is missing.",
+   "reference": "    n = len(nums)\n    return n * (n + 1) // 2 - sum(nums)",
+   "wrong": [
+    "    n = len(nums)\n    return n * (n - 1) // 2 - sum(nums)",
+    "    for i in range(len(nums)):\n        if i not in nums:\n            return i\n    return 0"
+   ],
+   "cases": [
+    {
+     "args": [
+      [
+       3,
+       0,
+       1
+      ]
+     ],
+     "expected": 2
+    },
+    {
+     "args": [
+      [
+       0,
+       1
+      ]
+     ],
+     "expected": 2
+    },
+    {
+     "args": [
+      [
+       1
+      ]
+     ],
+     "expected": 0
+    },
+    {
+     "args": [
+      [
+       0
+      ]
+     ],
+     "expected": 1
+    },
+    {
+     "args": [
+      [
+       9,
+       6,
+       4,
+       2,
+       3,
+       5,
+       7,
+       0,
+       1
+      ]
+     ],
+     "expected": 8
+    }
+   ]
+  },
+  {
+   "id": "two_sum",
+   "split": "train",
+   "signature": "def two_sum(nums: list[int], target: int) -> list[int] | None:",
+   "doc": "Return the indices [i, j], i < j, of the first pair (smallest i, then smallest j) whose values add up to target, or None.",
+   "reference": "    for i in range(len(nums)):\n        for j in range(i + 1, len(nums)):\n            if nums[i] + nums[j] == target:\n                return [i, j]\n    return None",
+   "wrong": [
+    "    seen = {}\n    for j, x in enumerate(nums):\n        if target - x in seen:\n            return [seen[target - x], j]\n        seen[x] = j\n    return None",
+    "    for i in range(len(nums)):\n        for j in range(len(nums)):\n            if nums[i] + nums[j] == target:\n                return [i, j]\n    return None"
+   ],
+   "cases": [
+    {
+     "args": [
+      [
+       2,
+       7,
+       11,
+       15
+      ],
+      9
+     ],
+     "expected": [
+      0,
+      1
+     ]
+    },
+    {
+     "args": [
+      [
+       3,
+       3
+      ],
+      6
+     ],
+     "expected": [
+      0,
+      1
+     ]
+    },
+    {
+     "args": [
+      [
+       1,
+       2
+      ],
+      7
+     ],
+     "expected": null
+    },
+    {
+     "args": [
+      [
+       1,
+       3,
+       2,
+       4
+      ],
+      5
+     ],
+     "expected": [
+      0,
+      3
+     ]
+    },
+    {
+     "args": [
+      [
+       5,
+       1,
+       5
+      ],
+      10
+     ],
+     "expected": [
+      0,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "id": "common_prefix",
+   "split": "train",
+   "signature": "def common_prefix(words: list[str]) -> str:",
+   "doc": "Return the longest prefix shared by every word, or an empty string (also for an empty list).",
+   "reference": "    if not words:\n        return \"\"\n    prefix = words[0]\n    for w in words[1:]:\n        while not w.startswith(prefix):\n            prefix = prefix[:-1]\n    return prefix",
+   "wrong": [
+    "    prefix = min(words)\n    for w in words:\n        while not w.startswith(prefix):\n            prefix = prefix[:-1]\n    return prefix"
+   ],
+   "cases": [
+    {
+     "args": [
+      [
+       "flower",
+       "flow",
+       "flight"
+      ]
+     ],
+     "expected": "fl"
+    },
+    {
+     "args": [
+      [
+       "dog",
+       "car"
+      ]
+     ],
+     "expected": ""
+    },
+    {
+     "args": [
+      []
+     ],
+     "expected": ""
+    },
+    {
+     "args": [
+      [
+       "same",
+       "same"
+      ]
+     ],
+     "expected": "same"
+    },
+    {
+     "args": [
+      [
+       "ab",
+       "a"
+      ]
+     ],
+     "expected": "a"
+    }
+   ]
+  },
+  {
+   "id": "binary_search",
+   "split": "train",
+   "signature": "def binary_search(xs: list[int], x: int) -> int:",
+   "doc": "xs is sorted ascending with distinct values. Return the index of x in xs, or -1 if it is absent.",
+   "reference": "    lo, hi = 0, len(xs) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if xs[mid] == x:\n            return mid\n        if xs[mid] < x:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1",
+   "wrong": [
+    "    lo, hi = 0, len(xs) - 1\n    while lo < hi:\n        mid = (lo + hi) // 2\n        if xs[mid] == x:\n            return mid\n        if xs[mid] < x:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1"
+   ],
+   "cases": [
+    {
+     "args": [
+      [
+       1,
+       3,
+       5,
+       7,
+       9
+      ],
+      7
+     ],
+     "expected": 3
+    },
+    {
+     "args": [
+      [
+       1,
+       3,
+       5,
+       7,
+       9
+      ],
+      4
+     ],
+     "expected": -1
+    },
+    {
+     "args": [
+      [],
+      1
+     ],
+     "expected": -1
+    },
+    {
+     "args": [
+      [
+       2
+      ],
+      2
+     ],
+     "expected": 0
+    },
+    {
+     "args": [
+      [
+       1,
+       3,
+       5,
+       7,
+       9
+      ],
+      9
+     ],
+     "expected": 4
+    },
+    {
+     "args": [
+      [
+       1,
+       3,
+       5,
+       7,
+       9
+      ],
+      1
+     ],
+     "expected": 0
+    }
+   ]
+  },
+  {
+   "id": "fizzbuzz",
+   "split": "train",
+   "signature": "def fizzbuzz(n: int) -> list[str]:",
+   "doc": "Return the FizzBuzz strings for 1..n: Fizz for multiples of 3, Buzz for multiples of 5, FizzBuzz for both, else the number.",
+   "reference": "    out = []\n    for i in range(1, n + 1):\n        s = (\"Fizz\" if i % 3 == 0 else \"\") + (\"Buzz\" if i % 5 == 0 else \"\")\n        out.append(s or str(i))\n    return out",
+   "wrong": [
+    "    out = []\n    for i in range(1, n + 1):\n        if i % 3 == 0:\n            out.append(\"Fizz\")\n        elif i % 5 == 0:\n            out.append(\"Buzz\")\n        elif i % 15 == 0:\n            out.append(\"FizzBuzz\")\n        else:\n            out.append(str(i))\n    return out",
+    "    return [(\"Fizz\" if i % 3 == 0 else \"\") + (\"Buzz\" if i % 5 == 0 else \"\") or str(i) for i in range(n)]"
+   ],
+   "cases": [
+    {
+     "args": [
+      5
+     ],
+     "expected": [
+      "1",
+      "2",
+      "Fizz",
+      "4",
+      "Buzz"
+     ]
+    },
+    {
+     "args": [
+      15
+     ],
+     "expected": [
+      "1",
+      "2",
+      "Fizz",
+      "4",
+      "Buzz",
+      "Fizz",
+      "7",
+      "8",
+      "Fizz",
+      "Buzz",
+      "11",
+      "Fizz",
+      "13",
+      "14",
+      "FizzBuzz"
+     ]
+    },
+    {
+     "args": [
+      0
+     ],
+     "expected": []
+    },
+    {
+     "args": [
+      1
+     ],
+     "expected": [
+      "1"
+     ]
+    },
+    {
+     "args": [
+      16
+     ],
+     "expected": [
+      "1",
+      "2",
+      "Fizz",
+      "4",
+      "Buzz",
+      "Fizz",
+      "7",
+      "8",
+      "Fizz",
+      "Buzz",
+      "11",
+      "Fizz",
+      "13",
+      "14",
+      "FizzBuzz",
+      "16"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "max_subarray",
+   "split": "train",
+   "signature": "def max_subarray(nums: list[int]) -> int:",
+   "doc": "Return the largest sum of a non-empty contiguous slice of nums (nums is not empty).",
+   "reference": "    best = cur = nums[0]\n    for x in nums[1:]:\n        cur = max(x, cur + x)\n        best = max(best, cur)\n    return best",
+   "wrong": [
+    "    best = cur = 0\n    for x in nums:\n        cur = max(0, cur + x)\n        best = max(best, cur)\n    return best"
+   ],
+   "cases": [
+    {
+     "args": [
+      [
+       -2,
+       1,
+       -3,
+       4,
+       -1,
+       2,
+       1,
+       -5,
+       4
+      ]
+     ],
+     "expected": 6
+    },
+    {
+     "args": [
+      [
+       1
+      ]
+     ],
+     "expected": 1
+    },
+    {
+     "args": [
+      [
+       -3,
+       -1,
+       -2
+      ]
+     ],
+     "expected": -1
+    },
+    {
+     "args": [
+      [
+       5,
+       4,
+       -1,
+       7,
+       8
+      ]
+     ],
+     "expected": 23
+    },
+    {
+     "args": [
+      [
+       0,
+       -1,
+       0
+      ]
+     ],
+     "expected": 0
+    }
+   ]
+  },
+  {
+   "id": "unique_in_order",
+   "split": "train",
+   "signature": "def unique_in_order(xs: list) -> list:",
+   "doc": "Remove consecutive duplicates from xs, keeping one element of each run.",
+   "reference": "    out = []\n    for x in xs:\n        if not out or out[-1] != x:\n            out.append(x)\n    return out",
+   "wrong": [
+    "    return list(dict.fromkeys(xs))"
+   ],
+   "cases": [
+    {
+     "args": [
+      [
+       "A",
+       "A",
+       "B",
+       "B",
+       "A"
+      ]
+     ],
+     "expected": [
+      "A",
+      "B",
+      "A"
+     ]
+    },
+    {
+     "args": [
+      []
+     ],
+     "expected": []
+    },
+    {
+     "args": [
+      [
+       1,
+       1,
+       1
+      ]
+     ],
+     "expected": [
+      1
+     ]
+    },
+    {
+     "args": [
+      [
+       1,
+       2,
+       2,
+       3,
+       1,
+       1
+      ]
+     ],
+     "expected": [
+      1,
+      2,
+      3,
+      1
+     ]
+    },
+    {
+     "args": [
+      [
+       "x"
+      ]
+     ],
+     "expected": [
+      "x"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pascal_row",
+   "split": "train",
+   "signature": "def pascal_row(n: int) -> list[int]:",
+   "doc": "Return row n of Pascal's triangle, counting from row 0 = [1].",
+   "reference": "    row = [1]\n    for _ in range(n):\n        row = [a + b for a, b in zip([0] + row, row + [0])]\n    return row",
+   "wrong": [
+    "    row = [1]\n    for _ in range(n - 1):\n        row = [a + b for a, b in zip([0] + row, row + [0])]\n    return row"
+   ],
+   "cases": [
+    {
+     "args": [
+      0
+     ],
+     "expected": [
+      1
+     ]
+    },
+    {
+     "args": [
+      1
+     ],
+     "expected": [
+      1,
+      1
+     ]
+    },
+    {
+     "args": [
+      4
+     ],
+     "expected": [
+      1,
+      4,
+      6,
+      4,
+      1
+     ]
+    },
+    {
+     "args": [
+      6
+     ],
+     "expected": [
+      1,
+      6,
+      15,
+      20,
+      15,
+      6,
+      1
+     ]
+    },
+    {
+     "args": [
+      10
+     ],
+     "expected": [
+      1,
+      10,
+      45,
+      120,
+      210,
+      252,
+      210,
+      120,
+      45,
+      10,
+      1
+     ]
+    }
+   ]
+  },
+  {
+   "id": "caesar",
+   "split": "train",
+   "signature": "def caesar(s: str, k: int) -> str:",
+   "doc": "Shift every letter of s by k places in the alphabet, wrapping around and keeping its case. Other characters stay.",
+   "reference": "    out = []\n    for c in s:\n        if c.isalpha() and c.isascii():\n            base = ord(\"A\") if c.isupper() else ord(\"a\")\n            out.append(chr((ord(c) - base + k) % 26 + base))\n        else:\n            out.append(c)\n    return \"\".join(out)",
+   "wrong": [
+    "    return \"\".join(chr(ord(c) + k) if c.isalpha() else c for c in s)",
+    "    out = []\n    for c in s:\n        if c.isalpha():\n            out.append(chr((ord(c.lower()) - ord(\"a\") + k) % 26 + ord(\"a\")))\n        else:\n            out.append(c)\n    return \"\".join(out)"
+   ],
+   "cases": [
+    {
+     "args": [
+      "abc",
+      1
+     ],
+     "expected": "bcd"
+    },
+    {
+     "args": [
+      "xyz",
+      3
+     ],
+     "expected": "abc"
+    },
+    {
+     "args": [
+      "Hello, World!",
+      13
+     ],
+     "expected": "Uryyb, Jbeyq!"
+    },
+    {
+     "args": [
+      "",
+      5
+     ],
+     "expected": ""
+    },
+    {
+     "args": [
+      "Zz",
+      -1
+     ],
+     "expected": "Yy"
+    }
+   ]
+  },
+  {
+   "id": "median",
+   "split": "train",
+   "signature": "def median(nums: list[float]) -> float:",
+   "doc": "Return the median of a non-empty list: the middle value, or the mean of the two middle values for an even length.",
+   "reference": "    xs = sorted(nums)\n    m = len(xs) // 2\n    return float(xs[m]) if len(xs) % 2 else (xs[m - 1] + xs[m]) / 2",
+   "wrong": [
+    "    return float(nums[len(nums) // 2])",
+    "    xs = sorted(nums)\n    return float(xs[len(xs) // 2])"
+   ],
+   "cases": [
+    {
+     "args": [
+      [
+       3,
+       1,
+       2
+      ]
+     ],
+     "expected": 2.0
+    },
+    {
+     "args": [
+      [
+       4,
+       1,
+       3,
+       2
+      ]
+     ],
+     "expected": 2.5
+    },
+    {
+     "args": [
+      [
+       5
+      ]
+     ],
+     "expected": 5.0
+    },
+    {
+     "args": [
+      [
+       1,
+       1,
+       2,
+       9
+      ]
+     ],
+     "expected": 1.5
+    },
+    {
+     "args": [
+      [
+       -1,
+       -3,
+       10
+      ]
+     ],
+     "expected": -1.0
+    }
+   ]
+  },
+  {
+   "id": "to_binary",
+   "split": "train",
+   "signature": "def to_binary(n: int) -> str:",
+   "doc": "Return the binary digits of the non-negative integer n without a prefix; 0 is '0'.",
+   "reference": "    return bin(n)[2:]",
+   "wrong": [
+    "    out = \"\"\n    while n:\n        out = str(n % 2) + out\n        n //= 2\n    return out",
+    "    return bin(n)"
+   ],
+   "cases": [
+    {
+     "args": [
+      0
+     ],
+     "expected": "0"
+    },
+    {
+     "args": [
+      1
+     ],
+     "expected": "1"
+    },
+    {
+     "args": [
+      5
+     ],
+     "expected": "101"
+    },
+    {
+     "args": [
+      255
+     ],
+     "expected": "11111111"
+    },
+    {
+     "args": [
+      1024
+     ],
+     "expected": "10000000000"
+    }
+   ]
+  },
+  {
+   "id": "dedupe",
+   "split": "train",
+   "signature": "def dedupe(xs: list) -> list:",
+   "doc": "Remove repeated elements from xs, keeping the first occurrence of each, in order.",
+   "reference": "    seen, out = set(), []\n    for x in xs:\n        if x not in seen:\n            seen.add(x)\n            out.append(x)\n    return out",
+   "wrong": [
+    "    return sorted(set(xs))",
+    "    return list(set(xs))"
+   ],
+   "cases": [
+    {
+     "args": [
+      [
+       3,
+       1,
+       3,
+       2,
+       1
+      ]
+     ],
+     "expected": [
+      3,
+      1,
+      2
+     ]
+    },
+    {
+     "args": [
+      []
+     ],
+     "expected": []
+    },
+    {
+     "args": [
+      [
+       "b",
+       "a",
+       "b"
+      ]
+     ],
+     "expected": [
+      "b",
+      "a"
+     ]
+    },
+    {
+     "args": [
+      [
+       5,
+       5,
+       5
+      ]
+     ],
+     "expected": [
+      5
+     ]
+    },
+    {
+     "args": [
+      [
+       2,
+       10,
+       2,
+       1
+      ]
+     ],
+     "expected": [
+      2,
+      10,
+      1
+     ]
+    }
+   ]
+  },
+  {
+   "id": "compress_ranges",
+   "split": "heldout",
+   "signature": "def compress_ranges(nums: list[int]) -> str:",
+   "doc": "nums is sorted ascending with distinct values. Join runs of consecutive numbers as 'a-b' and single numbers as 'a', separated by commas.",
+   "reference": "    parts, i = [], 0\n    while i < len(nums):\n        j = i\n        while j + 1 < len(nums) and nums[j + 1] == nums[j] + 1:\n            j += 1\n        parts.append(str(nums[i]) if i == j else f\"{nums[i]}-{nums[j]}\")\n        i = j + 1\n    return \",\".join(parts)",
+   "wrong": [
+    "    return \",\".join(str(x) for x in nums)"
+   ],
+   "cases": [
+    {
+     "args": [
+      [
+       1,
+       2,
+       3,
+       5,
+       7,
+       8
+      ]
+     ],
+     "expected": "1-3,5,7-8"
+    },
+    {
+     "args": [
+      []
+     ],
+     "expected": ""
+    },
+    {
+     "args": [
+      [
+       4
+      ]
+     ],
+     "expected": "4"
+    },
+    {
+     "args": [
+      [
+       1,
+       3,
+       5
+      ]
+     ],
+     "expected": "1,3,5"
+    },
+    {
+     "args": [
+      [
+       -2,
+       -1,
+       0,
+       2
+      ]
+     ],
+     "expected": "-2-0,2"
+    }
+   ]
+  },
+  {
+   "id": "transpose",
+   "split": "heldout",
+   "signature": "def transpose(m: list[list[int]]) -> list[list[int]]:",
+   "doc": "Return the transpose of a rectangular matrix given as a list of rows; an empty matrix gives [].",
+   "reference": "    return [list(col) for col in zip(*m)]",
+   "wrong": [
+    "    return [[m[j][i] for j in range(len(m))] for i in range(len(m))]"
+   ],
+   "cases": [
+    {
+     "args": [
+      [
+       [
+        1,
+        2,
+        3
+       ],
+       [
+        4,
+        5,
+        6
+       ]
+      ]
+     ],
+     "expected": [
+      [
+       1,
+       4
+      ],
+      [
+       2,
+       5
+      ],
+      [
+       3,
+       6
+      ]
+     ]
+    },
+    {
+     "args": [
+      []
+     ],
+     "expected": []
+    },
+    {
+     "args": [
+      [
+       [
+        1
+       ]
+      ]
+     ],
+     "expected": [
+      [
+       1
+      ]
+     ]
+    },
+    {
+     "args": [
+      [
+       [
+        1,
+        2
+       ],
+       [
+        3,
+        4
+       ],
+       [
+        5,
+        6
+       ]
+      ]
+     ],
+     "expected": [
+      [
+       1,
+       3,
+       5
+      ],
+      [
+       2,
+       4,
+       6
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "title_case",
+   "split": "heldout",
+   "signature": "def title_case(s: str) -> str:",
+   "doc": "Capitalize the first letter of every space-separated word and lower-case the rest, keeping the spaces as they are.",
+   "reference": "    return \" \".join(w[:1].upper() + w[1:].lower() for w in s.split(\" \"))",
+   "wrong": [
+    "    return \" \".join(w.capitalize() for w in s.split())"
+   ],
+   "cases": [
+    {
+     "args": [
+      "hello world"
+     ],
+     "expected": "Hello World"
+    },
+    {
+     "args": [
+      "HELLO  wORLD"
+     ],
+     "expected": "Hello  World"
+    },
+    {
+     "args": [
+      ""
+     ],
+     "expected": ""
+    },
+    {
+     "args": [
+      "a"
+     ],
+     "expected": "A"
+    },
+    {
+     "args": [
+      " leading space"
+     ],
+     "expected": " Leading Space"
+    }
+   ]
+  },
+  {
+   "id": "count_vowels",
+   "split": "heldout",
+   "signature": "def count_vowels(s: str) -> int:",
+   "doc": "Count the vowels a, e, i, o and u in s, in either case.",
+   "reference": "    return sum(c in \"aeiou\" for c in s.lower())",
+   "wrong": [
+    "    return sum(c in \"aeiou\" for c in s)"
+   ],
+   "cases": [
+    {
+     "args": [
+      "hello"
+     ],
+     "expected": 2
+    },
+    {
+     "args": [
+      "AEIOU"
+     ],
+     "expected": 5
+    },
+    {
+     "args": [
+      ""
+     ],
+     "expected": 0
+    },
+    {
+     "args": [
+      "rhythm"
+     ],
+     "expected": 0
+    },
+    {
+     "args": [
+      "Programming Is Fun"
+     ],
+     "expected": 5
+    }
+   ]
+  },
+  {
+   "id": "gcd_all",
+   "split": "heldout",
+   "signature": "def gcd_all(nums: list[int]) -> int:",
+   "doc": "Return the greatest common divisor of all the positive integers in nums (nums is not empty).",
+   "reference": "    from math import gcd\n    g = 0\n    for x in nums:\n        g = gcd(g, x)\n    return g",
+   "wrong": [
+    "    return min(nums)"
+   ],
+   "cases": [
+    {
+     "args": [
+      [
+       12,
+       18,
+       24
+      ]
+     ],
+     "expected": 6
+    },
+    {
+     "args": [
+      [
+       7
+      ]
+     ],
+     "expected": 7
+    },
+    {
+     "args": [
+      [
+       5,
+       10,
+       15
+      ]
+     ],
+     "expected": 5
+    },
+    {
+     "args": [
+      [
+       9,
+       28
+      ]
+     ],
+     "expected": 1
+    },
+    {
+     "args": [
+      [
+       100,
+       75,
+       50
+      ]
+     ],
+     "expected": 25
+    }
+   ]
+  },
+  {
+   "id": "spiral",
+   "split": "heldout",
+   "signature": "def spiral(m: list[list[int]]) -> list[int]:",
+   "doc": "Return the elements of a rectangular matrix in clockwise spiral order, starting at the top-left.",
+   "reference": "    out, m = [], [list(r) for r in m]\n    while m:\n        out += m.pop(0)\n        m = [list(r) for r in zip(*m)][::-1]\n    return out",
+   "wrong": [
+    "    return [x for row in m for x in row]"
+   ],
+   "cases": [
+    {
+     "args": [
+      [
+       [
+        1,
+        2,
+        3
+       ],
+       [
+        4,
+        5,
+        6
+       ],
+       [
+        7,
+        8,
+        9
+       ]
+      ]
+     ],
+     "expected": [
+      1,
+      2,
+      3,
+      6,
+      9,
+      8,
+      7,
+      4,
+      5
+     ]
+    },
+    {
+     "args": [
+      [
+       [
+        1,
+        2
+       ],
+       [
+        3,
+        4
+       ]
+      ]
+     ],
+     "expected": [
+      1,
+      2,
+      4,
+      3
+     ]
+    },
+    {
+     "args": [
+      []
+     ],
+     "expected": []
+    },
+    {
+     "args": [
+      [
+       [
+        1,
+        2,
+        3,
+        4
+       ]
+      ]
+     ],
+     "expected": [
+      1,
+      2,
+      3,
+      4
+     ]
+    },
+    {
+     "args": [
+      [
+       [
+        1
+       ],
+       [
+        2
+       ],
+       [
+        3
+       ]
+      ]
+     ],
+     "expected": [
+      1,
+      2,
+      3
+     ]
+    }
+   ]
+  },
+  {
+   "id": "is_anagram",
+   "split": "heldout",
+   "signature": "def is_anagram(a: str, b: str) -> bool:",
+   "doc": "Return True if a and b use the same letters the same number of times, ignoring case and spaces.",
+   "reference": "    norm = lambda s: sorted(s.replace(\" \", \"\").lower())\n    return norm(a) == norm(b)",
+   "wrong": [
+    "    return sorted(a) == sorted(b)"
+   ],
+   "cases": [
+    {
+     "args": [
+      "listen",
+      "silent"
+     ],
+     "expected": true
+    },
+    {
+     "args": [
+      "Dormitory",
+      "dirty room"
+     ],
+     "expected": true
+    },
+    {
+     "args": [
+      "abc",
+      "abd"
+     ],
+     "expected": false
+    },
+    {
+     "args": [
+      "",
+      ""
+     ],
+     "expected": true
+    },
+    {
+     "args": [
+      "aab",
+      "abb"
+     ],
+     "expected": false
+    }
+   ]
+  },
+  {
+   "id": "nth_fib",
+   "split": "heldout",
+   "signature": "def nth_fib(n: int) -> int:",
+   "doc": "Return the n-th Fibonacci number, with nth_fib(0) == 0 and nth_fib(1) == 1.",
+   "reference": "    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a",
+   "wrong": [
+    "    a, b = 1, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a"
+   ],
+   "cases": [
+    {
+     "args": [
+      0
+     ],
+     "expected": 0
+    },
+    {
+     "args": [
+      1
+     ],
+     "expected": 1
+    },
+    {
+     "args": [
+      2
+     ],
+     "expected": 1
+    },
+    {
+     "args": [
+      10
+     ],
+     "expected": 55
+    },
+    {
+     "args": [
+      30
+     ],
+     "expected": 832040
+    }
+   ]
+  }
+ ]
+}

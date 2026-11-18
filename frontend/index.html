@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <!-- Not in public/: the build hashes it into /assets/, so a changed icon gets a new URL.
+         Browsers cache tab icons by URL and keep a stale one through reloads otherwise. -->
+    <link rel="icon" href="/src/assets/favicon.svg" type="image/svg+xml" />
+    <title>Serverless RL InstantStart</title>
+    <script>
+      // Before any CSS or the app loads: apply the saved theme and language, so a dark page never
+      // flashes white. The two paper colors mirror tokens.ts; ThemeProvider takes over from here.
+      (function () {
+        var theme = "system", lang = null;
+        try { theme = localStorage.getItem("srl.theme") || "system"; lang = localStorage.getItem("srl.lang"); } catch (e) {}
+        var dark = theme === "dark" || (theme !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        var root = document.documentElement;
+        root.dataset.theme = dark ? "dark" : "light";
+        root.style.colorScheme = dark ? "dark" : "light";
+        root.style.background = dark ? "#0E1217" : "#F3F5F7";
+        var zh = (lang || navigator.language || "").toLowerCase().indexOf("zh") === 0;
+        root.lang = zh ? "zh-CN" : "en";
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

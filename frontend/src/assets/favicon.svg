@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" color="#545B64">
+  <!-- Open loop with a raised endpoint: one training update.
+       Colors mirror the light/dark text2 tokens in tokens.ts. docs/ui-design.md 4.2 -->
+  <style>
+    @media (prefers-color-scheme: dark) {
+      :root { color: #A9B4C0; }
+    }
+  </style>
+  <path d="M16 8H6V26H26V14H22V4H28" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="miter"/>
+</svg>

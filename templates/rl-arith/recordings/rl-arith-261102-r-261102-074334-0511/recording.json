@@ -1,0 +1,33 @@
+{
+  "name": "rl-arith-261102-r-261102-074334-0511",
+  "source_run": "r-261102-074334-0511",
+  "scenario": "rl-arith",
+  "recorded_ts": 1793605416.142,
+  "model": "openai/gpt-oss-20b",
+  "region": "us-west-2",
+  "duration_s": 349.533,
+  "cost_usd": 0.0016949999999999997,
+  "tokens": {
+    "prefill": 960,
+    "sample": 1894,
+    "train": 2810
+  },
+  "eval": {
+    "label": "Held-out problems answered correctly",
+    "before": 9,
+    "after": 16,
+    "n": 16,
+    "unit": "count"
+  },
+  "scrubbed": {
+    "date": "2026-11-18",
+    "account_id": "111122223333",
+    "removed": [
+      "2 mlflow events",
+      "stdout.log",
+      "6 copies of templates/_shared files",
+      "README.md",
+      "2 lines marked for the release"
+    ]
+  }
+}

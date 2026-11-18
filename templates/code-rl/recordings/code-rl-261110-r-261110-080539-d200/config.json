@@ -1,0 +1,45 @@
+{
+  "run_id": "r-261110-080539-d200",
+  "scenario": "code-rl",
+  "backend": "live",
+  "aws": {
+    "region": "us-west-2",
+    "role_arn": "arn:aws:iam::111122223333:role/service-role/AmazonSageMaker-ServerlessRL-InstantStart",
+    "model_package_group_arn": "arn:aws:sagemaker:us-west-2:111122223333:model-package-group/serverless-rl-instantstart",
+    "s3_output_path": "s3://sagemaker-us-west-2-111122223333/serverless-rl-instantstart/",
+    "session_name_prefix": "instantstart",
+    "sandbox": {
+      "runtime_arn": "arn:aws:bedrock-agentcore:us-west-2:111122223333:runtime/srl_instantstart_sandbox-864PkjAIk9",
+      "runtime_name": "srl_instantstart_sandbox",
+      "version": "1",
+      "qualifier": "DEFAULT",
+      "platform": "V2",
+      "code_sha": "627365f6a9fc",
+      "usage_log_group": "/aws/vendedlogs/bedrock-agentcore/serverless-rl-instantstart/sandbox-usage"
+    }
+  },
+  "params": {
+    "base_model": "openai/gpt-oss-20b",
+    "steps": 6,
+    "prompts_per_step": 8,
+    "group_size": 4,
+    "learning_rate": 4e-05,
+    "temperature": 0.7,
+    "test_timeout_s": 10.0,
+    "isolation": "rollout",
+    "save_checkpoint": false,
+    "max_tokens": 1024,
+    "seed": 0,
+    "lora_rank": 32,
+    "lora_alpha": 64,
+    "adam_beta1": 0.9,
+    "adam_beta2": 0.999,
+    "adam_eps": 1e-08,
+    "weight_decay": 0.01
+  },
+  "variants": {
+    "reward": "tests_passed",
+    "isolation": "rollout"
+  },
+  "custom_files": []
+}

@@ -1,0 +1,30 @@
+[project]
+name = "serverless-rl-instantstart"
+version = "0.1.0"
+description = "Backend for Serverless RL InstantStart: runs training-session loops and serves their event streams"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic>=2.8",
+    # Training Session SDK. Templates are verified against 1.27.0 (2026-10-27); bump only after
+    # re-running a live smoke test, the API is new and still moving.
+    "sagemaker-train[tokenizer]==1.27.0",
+    # First boto3 release with the *TrainingSession control-plane and runtime clients we tested.
+    "boto3>=1.43.119",
+    # The MTRL agent talks to the Job Runtime Service through the OpenAI client (reward check runs it locally).
+    "openai>=1.40",
+]
+
+[dependency-groups]
+dev = ["pytest>=8", "httpx>=0.27"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["srl"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

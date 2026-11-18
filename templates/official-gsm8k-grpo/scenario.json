@@ -1,0 +1,89 @@
+{
+  "id": "official-gsm8k-grpo",
+  "order": 0,
+  "engine": "training-session",
+  "title": "GRPO on GSM8K math word problems",
+  "technique": "RL · single turn",
+  "summary": "The sample the AWS launch blog walks through, with its code unchanged: GPT-OSS solves grade-school math word problems step by step, a parser checks the number after \"####\", and GRPO with the ppo loss reinforces the right answers. 10 steps on 40 problems.",
+  "status": "live-verified",
+  "source": {
+    "repo": "aws/amazon-sagemaker-examples",
+    "path": "     model_customization/sm-training_sessions_grpo_gsm8k",
+    "commit": "3429cb1a55",
+    "license": "Apache-2.0",
+    "url": "https://github.com/aws/amazon-sagemaker-examples/tree/default/%20%20%20%20%20model_customization/sm-training_sessions_grpo_gsm8k",
+    "published": "AWS launch blog (2026-10-22): 10 training steps on 40 problems took held-out accuracy from 56% to 75%.",
+    "published_url": "https://aws.amazon.com/blogs/machine-learning/write-your-own-training-loop-without-managing-gpus-with-amazon-sagemaker-training-sessions/"
+  },
+  "evidence": {
+    "basis": "live run r-261029-062402-13bb of this template",
+    "date": "2026-10-29",
+    "region": "us-west-2",
+    "model": "openai/gpt-oss-20b",
+    "duration_s": 678,
+    "cost_usd": 0.1138,
+    "note": "Live on 2026-10-29 with the notebook's defaults: held-out accuracy 56% to 78% (67 to 93 of 120 samples, about 4 to 5 points of standard error), against the published 56% to 75%. About 46 s per step; the merged save at the end took 153 s. BillableTokenUsage matched the estimate."
+  },
+  "probes": false,
+  "you_write": ["official.py", "loop.py"],
+  "aws_runs": ["sample", "forward_backward", "optim_step", "save_weights_for_sampler", "save_state"],
+  "you_will_see": [
+    "The official notebook's loop drawn as it runs, with the task code unchanged in official.py",
+    "Held-out accuracy before and after, on 30 test problems x 4 samples, to compare with the published 56% to 75%",
+    "Batch accuracy, groups with signal and the ppo loss's diagnostics at every step"
+  ],
+  "files": ["loop.py", "official.py", "gsm8k/train.jsonl", "gsm8k/eval.jsonl"],
+  "metrics": [
+    {"key": "batch_accuracy", "label": "Batch accuracy", "format": "0%", "min": 0, "max": 1},
+    {"key": "groups_with_signal", "label": "Groups with signal", "format": "0%", "min": 0, "max": 1},
+    {"key": "ppo_kl", "label": "PPO KL (actor/ppo_kl)", "format": "0.0000"},
+    {"key": "pg_clipfrac", "label": "Clipped fraction (actor/pg_clipfrac)", "format": "0%", "min": 0, "max": 1},
+    {"key": "pg_loss", "label": "Policy loss (actor/pg_loss)", "format": "0.000"}
+  ],
+  "params": [
+    {"key": "base_model", "label": "Base model", "type": "choice", "default": "openai/gpt-oss-20b", "choices": ["openai/gpt-oss-20b"],
+     "help": "official.py's prompt template is GPT-OSS's harmony chat format; another model needs a different template."},
+    {"key": "steps", "label": "Training steps", "type": "int", "default": 10, "min": 1, "max": 100, "help": "NUM_STEPS in the notebook."},
+    {"key": "prompts_per_step", "label": "Questions per step", "type": "int", "default": 4, "min": 1, "max": 40, "help": "PROMPTS_PER_STEP in the notebook."},
+    {"key": "group_size", "label": "Responses per question", "type": "int", "default": 8, "min": 2, "max": 16, "help": "RESPONSES_PER_PROMPT (K) in the notebook."},
+    {"key": "learning_rate", "label": "Learning rate", "type": "float", "default": 1e-05, "min": 1e-07, "max": 0.001,
+     "help": "ADAM_PARAMS in the notebook; the other Adam values are the SDK defaults, as there."},
+    {"key": "loss_fn", "label": "RL loss", "type": "choice", "default": "ppo", "choices": ["ppo", "importance_sampling", "cispo"], "advanced": true,
+     "help": "The notebook uses ppo."},
+    {"key": "temperature", "label": "Sampling temperature", "type": "float", "default": 0.7, "min": 0, "max": 2, "advanced": true},
+    {"key": "top_p", "label": "Top-p", "type": "float", "default": 0.9, "min": 0.01, "max": 1, "advanced": true},
+    {"key": "max_tokens", "label": "Max tokens per response", "type": "int", "default": 512, "min": 512, "max": 4096, "advanced": true,
+     "help": "512 in the notebook, also the service minimum."},
+    {"key": "eval_samples", "label": "Samples per held-out problem", "type": "int", "default": 4, "min": 1, "max": 16, "advanced": true,
+     "help": "EVAL_SAMPLES_PER_PROBLEM in the notebook."},
+    {"key": "save_state_every", "label": "Checkpoint every (steps)", "type": "int", "default": 5, "min": 0, "max": 100, "advanced": true,
+     "help": "SAVE_STATE_EVERY in the notebook; 0 disables."},
+    {"key": "lora_rank", "label": "LoRA rank", "type": "int", "default": 32, "min": 1, "max": 256, "advanced": true},
+    {"key": "lora_alpha", "label": "LoRA alpha", "type": "int", "default": 64, "min": 1, "max": 512, "advanced": true}
+  ],
+  "estimate": {"steps": "steps", "unbilled_params": ["save_state_every"]},
+  "loop": {
+    "driver": "client",
+    "header": "for step in range(NUM_STEPS)",
+    "header_out": "",
+    "before": ["create_session", "load_tokenizer", "sample"],
+    "after": ["sample", "compare", "save_weights_merged", "save_state", "stop_session"],
+    "nodes": [
+      {"op": "make_prompts", "lane": "client", "title": "Draw questions", "call": "build_prompt(question)", "out": "{prompts_per_step} questions",
+       "file": "official.py", "function": "build_prompt"},
+      {"op": "sample", "lane": "aws", "title": "Sample K responses", "call": "sampling_client.sample(prompt, num_samples={group_size})",
+       "out": "responses + logprobs", "primitive": "sample"},
+      {"op": "reward", "lane": "client", "title": "Score", "call": "compute_reward(response, ground_truth)", "out": "rewards",
+       "file": "official.py", "function": "compute_reward"},
+      {"op": "advantage", "lane": "client", "title": "GRPO advantages", "call": "compute_advantages(group)", "out": "datums",
+       "file": "official.py", "function": "compute_advantages"},
+      {"op": "forward_backward", "lane": "aws", "title": "forward_backward", "call": "forward_backward(datums, loss_fn=\"{loss_fn}\")",
+       "out": "gradient, kept on the GPU", "primitive": "forward_backward"},
+      {"op": "optim_step", "lane": "aws", "title": "optim_step", "call": "optim_step(ADAM_PARAMS)", "primitive": "optim_step"},
+      {"op": "save_weights_and_rebind", "lane": "aws", "title": "Rebind sampler", "call": "save_weights_and_get_sampling_client()",
+       "out": "the policy just trained", "primitive": "save_weights_for_sampler"},
+      {"op": "save_state", "lane": "aws", "title": "Checkpoint", "call": "save_state() every {save_state_every} steps", "out": "next step",
+       "primitive": "save_state"}
+    ]
+  }
+}

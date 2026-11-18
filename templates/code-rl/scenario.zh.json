@@ -1,0 +1,319 @@
+{
+  "fields": {
+    "title": {
+      "en": "Write Python functions that pass their tests",
+      "zh": "编写通过测试的 Python 函数"
+    },
+    "technique": {
+      "en": "RL · single turn · sandbox",
+      "zh": "RL · 单轮 · 沙箱"
+    },
+    "summary": {
+      "en": "The model writes a Python function; an AgentCore Runtime sandbox runs it against the function's tests, and the share of tests passed is the reward. Model-written code never runs in your process, which holds your AWS credentials and the training session.",
+      "zh": "模型编写 Python 函数；AgentCore Runtime 沙箱运行函数对应的测试，通过测试的比例即为 reward。模型生成的代码不在本地进程中执行，本地进程持有本机的 AWS 凭证和 training session。"
+    },
+    "you_will_see.0": {
+      "en": "A fourth block on your side of the loop that runs in AgentCore Runtime, not in this process: its sessions, cold starts and AgentCore cost",
+      "zh": "循环中新增一个自定义代码节点，它在 AgentCore Runtime 中执行而不是在本地进程中：展示 session 数、冷启动耗时和 AgentCore 费用"
+    },
+    "you_will_see.1": {
+      "en": "A reward check in the sandbox before the training session exists: correct, wrong and broken functions, one that exits before its tests finish, one that never returns",
+      "zh": "创建 training session 前，在沙箱中校验 reward：正确、错误和无法运行的函数，测试结束前退出的函数，以及永不返回的函数"
+    },
+    "you_will_see.2": {
+      "en": "Reward, share of bodies passing every test, share with no result, and the sandbox's cold start per step",
+      "zh": "逐步查看 reward、通过全部测试的函数体占比、没有结果的函数体占比，以及沙箱冷启动耗时"
+    },
+    "evidence.note": {
+      "en": "One live run on 2026-11-10 with the defaults (6 steps, 8 functions x 4 answers, one sandbox session per answer). The sandbox side worked: 223 sessions opened and stopped, none throttled, first call p50 1.57 s, 3.8 to 4.9 s of testing per step. Training did not show: the base model already passed almost every test (mean reward 0.98 to 1.0, held-out 8 to 8), and only steps 0 and 2 had groups with a gradient, so the problems need to be harder. Training tokens $0.0144 (matches BillableTokenUsage); AgentCore Runtime $0.0304 for the 223 sessions (usage logs x list price), about twice the tokens. An earlier run that day prompted a plain Python file to continue: gpt-oss-20b wrote prose in all 192 answers, which is why the prompt uses the harmony format.",
+      "zh": "2026-11-10 使用默认设置进行一次实时运行（6 步，8 个函数 × 4 个回答，每个回答一个沙箱 session）。沙箱一侧按预期工作：新建并停止 223 个 session，没有被限流，首次调用 p50 1.57 s，每步测试耗时 3.8–4.9 s。训练效果没有显现：基座模型已经能通过几乎所有测试（平均 reward 0.98–1.0，留出集 8 → 8），只有第 0、2 步有产生梯度的组，题目需要更难。训练 token 费用 $0.0144（与 BillableTokenUsage 一致）；223 个 session 的 AgentCore Runtime 费用 $0.0304（用量日志 × 标价），约为 token 费用的 2 倍。同日较早的一次运行让模型续写普通 Python 文件，gpt-oss-20b 的 192 个回答全是文字推理，因此 prompt 改用 harmony 格式。"
+    },
+    "sandbox.executes": {
+      "en": "The code of each sampled answer and its tests, one microVM per answer (or per group)",
+      "zh": "每个采样回答中的代码及其测试，每个回答（或每组）一台 microVM"
+    },
+    "node.save_weights_and_rebind.title": {
+      "en": "Rebind sampler",
+      "zh": "重新绑定 sampler"
+    },
+    "node.save_weights_and_rebind.out": {
+      "en": "sampler on the new weights",
+      "zh": "绑定新权重的 sampler"
+    },
+    "node.make_prompts.title": {
+      "en": "Pick functions",
+      "zh": "选取函数"
+    },
+    "node.make_prompts.out": {
+      "en": "{prompts_per_step} function heads",
+      "zh": "{prompts_per_step} 个函数签名"
+    },
+    "node.sample.title": {
+      "en": "Sample answers",
+      "zh": "采样回答"
+    },
+    "node.sample.out": {
+      "en": "reasoning + a code block, logprobs",
+      "zh": "推理过程 + 代码块，logprob"
+    },
+    "node.sandbox_run.title": {
+      "en": "Run the tests",
+      "zh": "运行测试"
+    },
+    "node.sandbox_run.out": {
+      "en": "tests passed, timeouts",
+      "zh": "通过的测试数、超时"
+    },
+    "node.reward.title": {
+      "en": "Score",
+      "zh": "打分"
+    },
+    "node.reward.out": {
+      "en": "rewards",
+      "zh": "reward"
+    },
+    "node.advantage.title": {
+      "en": "Advantages",
+      "zh": "计算 advantage"
+    },
+    "node.advantage.out": {
+      "en": "datums with advantages",
+      "zh": "带 advantage 的 datum"
+    },
+    "node.forward_backward.title": {
+      "en": "forward_backward",
+      "zh": "forward_backward"
+    },
+    "node.forward_backward.out": {
+      "en": "gradient, kept on the GPU",
+      "zh": "梯度保存在 GPU 上"
+    },
+    "node.optim_step.title": {
+      "en": "optim_step",
+      "zh": "optim_step"
+    },
+    "node.optim_step.out": {
+      "en": "next step",
+      "zh": "下一步"
+    },
+    "slot.reward.label": {
+      "en": "Reward",
+      "zh": "Reward"
+    },
+    "slot.reward.tests_passed.label": {
+      "en": "Share of tests passed",
+      "zh": "测试通过比例"
+    },
+    "slot.reward.tests_passed.short": {
+      "en": "tests passed",
+      "zh": "通过比例"
+    },
+    "slot.reward.tests_passed.summary": {
+      "en": "passed / total; 0 when the program left no result.",
+      "zh": "通过数 / 总数；程序没有输出结果时为 0。"
+    },
+    "slot.reward.tests_passed.watch": {
+      "en": "Answers that fail some tests still rank above ones that fail all, so more groups give a gradient.",
+      "zh": "只通过部分测试的回答，得分仍高于全部失败的回答，因此更多组能产生梯度。"
+    },
+    "slot.reward.all_pass.label": {
+      "en": "All or nothing",
+      "zh": "全部通过才得分"
+    },
+    "slot.reward.all_pass.short": {
+      "en": "all pass",
+      "zh": "全部通过"
+    },
+    "slot.reward.all_pass.summary": {
+      "en": "1 only when every test passed in time.",
+      "zh": "仅当所有测试在时限内通过时为 1。"
+    },
+    "slot.reward.all_pass.watch": {
+      "en": "Groups whose answers all fail at least one test give no gradient.",
+      "zh": "组内每个回答都至少有一项测试失败时，该组不产生梯度。"
+    },
+    "slot.reward.exit_code.label": {
+      "en": "Exit code only",
+      "zh": "只看退出码"
+    },
+    "slot.reward.exit_code.short": {
+      "en": "exit code",
+      "zh": "退出码"
+    },
+    "slot.reward.exit_code.summary": {
+      "en": "1 when the test program exits with code 0, as when grading by pytest's exit status.",
+      "zh": "测试程序以退出码 0 结束时为 1，等同于按 pytest 的退出状态评分。"
+    },
+    "slot.reward.exit_code.watch": {
+      "en": "The reward check warns: an answer that calls os._exit(0) skips the tests and still scores 1.",
+      "zh": "reward 校验会给出警告：调用 os._exit(0) 的回答跳过了测试，仍然得 1 分。"
+    },
+    "slot.isolation.label": {
+      "en": "Sandbox per",
+      "zh": "沙箱粒度"
+    },
+    "slot.isolation.rollout.label": {
+      "en": "One session per answer",
+      "zh": "每个回答一个 session"
+    },
+    "slot.isolation.rollout.short": {
+      "en": "per answer",
+      "zh": "每个回答"
+    },
+    "slot.isolation.rollout.summary": {
+      "en": "Every answer gets a fresh microVM, stopped as soon as it is scored, as MTRL does per rollout.",
+      "zh": "每个回答使用一台新的 microVM，评分后立即停止，与 MTRL 每条 rollout 一个 session 的做法相同。"
+    },
+    "slot.isolation.rollout.watch": {
+      "en": "The most sessions and cold starts: prompts x samples per step.",
+      "zh": "session 数和冷启动次数最多：每步为 prompt 数 × 样本数。"
+    },
+    "slot.isolation.group.label": {
+      "en": "One session per group",
+      "zh": "每组一个 session"
+    },
+    "slot.isolation.group.short": {
+      "en": "per group",
+      "zh": "每组"
+    },
+    "slot.isolation.group.summary": {
+      "en": "The answers for one function share a microVM; its work directory is wiped and its processes killed between answers.",
+      "zh": "同一函数的各个回答共用一台 microVM；两个回答之间清空工作目录并结束其进程。"
+    },
+    "slot.isolation.group.watch": {
+      "en": "A quarter of the sessions with 4 samples per prompt; answers of a group run one after another.",
+      "zh": "每个 prompt 采样 4 个时，session 数降为四分之一；组内回答依次运行。"
+    },
+    "param.base_model.label": {
+      "en": "Base model",
+      "zh": "基座模型"
+    },
+    "param.steps.label": {
+      "en": "RL steps",
+      "zh": "RL 步数"
+    },
+    "param.prompts_per_step.label": {
+      "en": "Functions per step",
+      "zh": "每步函数数"
+    },
+    "param.group_size.label": {
+      "en": "Answers per function",
+      "zh": "每个函数的回答数"
+    },
+    "param.learning_rate.label": {
+      "en": "Learning rate",
+      "zh": "学习率"
+    },
+    "param.temperature.label": {
+      "en": "Sampling temperature",
+      "zh": "采样温度"
+    },
+    "param.test_timeout_s.label": {
+      "en": "Test timeout (s)",
+      "zh": "测试超时（s）"
+    },
+    "param.test_timeout_s.help": {
+      "en": "Code still running after this is killed with its whole process group and scores no result. In a new sandbox version's first sessions a correct solution's test program took up to 4.9 s, and up to 6.0 s later (measured).",
+      "zh": "超过此时长仍在运行的代码，会连同其整个进程组被结束，并记为没有结果。沙箱新版本最初的几批 session 中，正确解答的测试程序最长耗时 4.9 s，之后一批最长 6.0 s（实测）。"
+    },
+    "param.isolation.label": {
+      "en": "Sandbox per",
+      "zh": "沙箱粒度"
+    },
+    "param.isolation.help": {
+      "en": "One AgentCore Runtime session per answer, or one per group of answers for the same function, wiped between answers.",
+      "zh": "每个回答一个 AgentCore Runtime session，或同一函数的一组回答共用一个 session，回答之间清空环境。"
+    },
+    "param.save_checkpoint.label": {
+      "en": "Save a resumable checkpoint",
+      "zh": "保存可恢复训练的 checkpoint"
+    },
+    "param.save_checkpoint.help": {
+      "en": "save_state took 53 s when measured.",
+      "zh": "实测 save_state 耗时 53 s。"
+    },
+    "param.max_tokens.label": {
+      "en": "Max tokens per completion",
+      "zh": "每个 completion 的最大 token 数"
+    },
+    "param.max_tokens.help": {
+      "en": "The service minimum is 512. The model reasons briefly before it writes the code; an answer cut off before its code block scores 0.",
+      "zh": "服务允许的最小值为 512。模型先简短推理再写代码；在输出代码块之前被截断的回答得 0 分。"
+    },
+    "param.seed.label": {
+      "en": "Problem seed",
+      "zh": "题目种子"
+    },
+    "param.lora_rank.label": {
+      "en": "LoRA rank",
+      "zh": "LoRA rank"
+    },
+    "param.lora_alpha.label": {
+      "en": "LoRA alpha",
+      "zh": "LoRA alpha"
+    },
+    "param.adam_beta1.label": {
+      "en": "Adam beta1",
+      "zh": "Adam beta1"
+    },
+    "param.adam_beta2.label": {
+      "en": "Adam beta2",
+      "zh": "Adam beta2"
+    },
+    "param.adam_eps.label": {
+      "en": "Adam epsilon",
+      "zh": "Adam epsilon"
+    },
+    "param.weight_decay.label": {
+      "en": "Weight decay",
+      "zh": "权重衰减（weight decay）"
+    },
+    "metric.reward_mean.label": {
+      "en": "Mean reward",
+      "zh": "平均 reward"
+    },
+    "metric.all_pass.label": {
+      "en": "Answers passing every test",
+      "zh": "通过全部测试的回答"
+    },
+    "metric.groups_with_signal.label": {
+      "en": "Groups with signal",
+      "zh": "有训练信号的组"
+    },
+    "metric.no_result.label": {
+      "en": "Answers with no result (crash, early exit, timeout)",
+      "zh": "没有结果的回答（崩溃、提前退出、超时）"
+    },
+    "metric.sampler_trainer_kl.label": {
+      "en": "Sampler-trainer KL (k3)",
+      "zh": "Sampler–trainer KL（k3）"
+    },
+    "metric.sandbox_cold_start_s.label": {
+      "en": "Sandbox cold start, p50 (s)",
+      "zh": "沙箱冷启动 p50（s）"
+    },
+    "metric.no_code.label": {
+      "en": "Answers without a code block",
+      "zh": "没有代码块的回答"
+    }
+  },
+  "events": {
+    "correct": "正确",
+    "wrong": "错误",
+    "syntax error": "语法错误",
+    "exits before the tests finish": "测试结束前退出",
+    "never returns": "永不返回",
+    "Correct bodies score above wrong and broken ones": "正确函数体的得分高于错误和无法运行的函数体",
+    "Otherwise RL moves the model away from working code, or nowhere.": "否则，RL 可能使模型更难写出能运行的代码，或无法带来改善。",
+    "A body that exits before its tests finish does not score": "测试结束前退出的函数体不得分",
+    "os._exit(0) ends the test program with exit code 0 before any result: grading by exit code (as with pytest's) pays the model for skipping the tests.": "os._exit(0) 会让测试程序在输出结果前以退出码 0 结束：按退出码评分（包括 pytest 的退出码）等于奖励模型跳过测试。",
+    "A body that never returns is stopped at the timeout and scores 0": "永不返回的函数体在超时后被结束，得 0 分",
+    "The sandbox kills the whole process group at the timeout; a hung body must not earn reward.": "超时后沙箱会结束整个进程组；挂起的函数体不应获得 reward。",
+    "Not every case scores the same": "不同测试情况的得分不完全相同",
+    "A constant reward makes every group all-equal: zero advantage, no gradient, tokens spent for nothing.": "reward 恒定时，各组内得分全部相同，advantage 为零，无法产生梯度；消耗 token 也不会产生训练效果。",
+    "Held-out functions whose tests all pass": "测试全部通过的留出函数数",
+    "Final weights for sampling or deployment": "最终权重，可用于采样或部署",
+    "Prompts use gpt-oss's harmony chat format with low reasoning effort, and the solution is the answer's last ```python block. Asked to continue a plain Python file, gpt-oss-20b wrote prose reasoning instead of code in every one of 192 completions (live, 2026-11-10).": "prompt 使用 gpt-oss 的 harmony 对话格式并设置低推理强度，解答取回答中最后一个 ```python 代码块。实测中让 gpt-oss-20b 续写普通 Python 文件时，192 个 completion 全部是文字推理而不是代码（实时运行，2026-11-10）。",
+    "Held-out functions, greedy answers: base model vs trained weights": "留出函数上的贪心解码：对比基座模型与训练后模型"
+  }
+}

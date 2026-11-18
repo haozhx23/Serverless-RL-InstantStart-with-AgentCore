@@ -1,0 +1,18 @@
+data/
+templates/
+frontend/node_modules/
+frontend/dist/
+backend/.venv/
+**/__pycache__/
+**/.pytest_cache/
+.git/
+# Internal material and release tooling are not needed by the image.
+docs/
+validation/
+AGENTS.md
+CLAUDE.md
+RELEASE_HANDBOOK.md
+release-manifest.json
+sync-release.sh
+scripts/release/
+.srl-release

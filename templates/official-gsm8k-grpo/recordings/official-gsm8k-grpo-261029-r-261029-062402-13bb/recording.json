@@ -1,0 +1,33 @@
+{
+  "name": "official-gsm8k-grpo-261029-r-261029-062402-13bb",
+  "source_run": "r-261029-062402-13bb",
+  "scenario": "official-gsm8k-grpo",
+  "recorded_ts": 1793255043.921,
+  "model": "openai/gpt-oss-20b",
+  "region": "us-west-2",
+  "duration_s": 678.472,
+  "cost_usd": 0.11384910000000001,
+  "tokens": {
+    "prefill": 11765,
+    "sample": 224209,
+    "train": 125485
+  },
+  "eval": {
+    "label": "Held-out samples answered correctly (30 problems x 4)",
+    "before": 67,
+    "after": 93,
+    "n": 120,
+    "unit": "samples"
+  },
+  "scrubbed": {
+    "date": "2026-11-18",
+    "account_id": "111122223333",
+    "removed": [
+      "0 mlflow events",
+      "stdout.log",
+      "5 copies of templates/_shared files",
+      "README.md",
+      "1 lines marked for the release"
+    ]
+  }
+}

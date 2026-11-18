@@ -1,0 +1,33 @@
+{
+  "name": "code-rl-261110-r-261110-080539-d200",
+  "source_run": "r-261110-080539-d200",
+  "scenario": "code-rl",
+  "recorded_ts": 1794297940.812,
+  "model": "openai/gpt-oss-20b",
+  "region": "us-west-2",
+  "duration_s": 336.836,
+  "cost_usd": 0.01442628,
+  "tokens": {
+    "prefill": 7873,
+    "sample": 39134,
+    "train": 4837
+  },
+  "eval": {
+    "label": "Held-out functions whose tests all pass",
+    "before": 8,
+    "after": 8,
+    "n": 8,
+    "unit": "count"
+  },
+  "scrubbed": {
+    "date": "2026-11-18",
+    "account_id": "111122223333",
+    "removed": [
+      "2 mlflow events",
+      "stdout.log",
+      "8 copies of templates/_shared files",
+      "README.md",
+      "2 lines marked for the release"
+    ]
+  }
+}

@@ -1,0 +1,448 @@
+{
+  "id": "rl-arith",
+  "order": 2,
+  "engine": "training-session",
+  "title": "Reinforce correct multiplication answers",
+  "technique": "RL · single turn",
+  "summary": "A GRPO-style loop in your process: sample a group per prompt, score it with reward.py, turn the scores into advantages with advantage.py, update. Swap or edit any of the four slots.",
+  "status": "live-verified",
+  "probe_example": "What is 512 * 37?",
+  "evidence": {
+    "basis": "live run r-261029-035938-9a84 of this template",
+    "date": "2026-10-29",
+    "region": "us-west-2",
+    "model": "openai/gpt-oss-20b",
+    "duration_s": 303,
+    "cost_usd": 0.00124,
+    "note": "One live run on 2026-10-29 with the defaults (6 steps, 8 prompts x 4 samples): mean reward 0.44 to 0.81, held-out 9 to 15 of 16, about 41 s per step. A single run: how much of the rise is sampling noise is not measured. Three more default runs that day: 9 to 14, 9 to 12 and 11 to 11; the base model's own held-out score varied between 9 and 11. Every other slot variant ran live once on 2026-11-02 with the other settings at their defaults ($0.0013 to $0.0017 each): batch_norm trained every group and cost the most ($0.00173); ppo and cispo returned no rollout_corr metrics; rebind_every 2 and 4 left the sampler 1 and up to 3 updates behind, with the KL reaching 0.07 and 0.17, and 4 finished in 216 s, where the default runs took 303 to 316 s; format only still trained, raising the share of bare-number answers from 50% to 91%."
+  },
+  "you_write": [
+    "task.py",
+    "reward.py",
+    "advantage.py",
+    "loop.py"
+  ],
+  "aws_runs": [
+    "create session",
+    "save weights + rebind",
+    "sample",
+    "forward_backward",
+    "optim_step"
+  ],
+  "you_will_see": [
+    "Your loop drawn as it runs: which block is executing, on which side of the API, and what it cost",
+    "Most of each step on the AWS side: about 24 s to save weights and rebind the sampler, 11 s to sample, 6 s per update (measured 2026-10-29)",
+    "A reward check on known answers before the session exists, then reward, groups with signal and sampler-trainer KL per step"
+  ],
+  "files": [
+    "loop.py",
+    "reward.py",
+    "advantage.py",
+    "task.py"
+  ],
+  "metrics": [
+    {
+      "key": "reward_mean",
+      "label": "Mean reward",
+      "format": "0.00",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "groups_with_signal",
+      "label": "Groups with signal",
+      "format": "0%",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "sampler_trainer_kl",
+      "label": "Sampler-trainer KL (k3)",
+      "format": "0.0000"
+    },
+    {
+      "key": "updates_behind",
+      "label": "Sampler behind the trainer (updates)",
+      "format": "0",
+      "min": 0
+    },
+    {
+      "key": "truncated",
+      "label": "Truncated completions",
+      "format": "0%",
+      "min": 0,
+      "max": 1
+    }
+  ],
+  "params": [
+    {
+      "key": "base_model",
+      "label": "Base model",
+      "type": "model",
+      "default": "openai/gpt-oss-20b"
+    },
+    {
+      "key": "steps",
+      "label": "RL steps",
+      "type": "int",
+      "default": 6,
+      "min": 1,
+      "max": 100
+    },
+    {
+      "key": "prompts_per_step",
+      "label": "Prompts per step",
+      "type": "int",
+      "default": 8,
+      "min": 1,
+      "max": 128
+    },
+    {
+      "key": "group_size",
+      "label": "Samples per prompt",
+      "type": "int",
+      "default": 4,
+      "min": 2,
+      "max": 16
+    },
+    {
+      "key": "learning_rate",
+      "label": "Learning rate",
+      "type": "float",
+      "default": 4e-05,
+      "min": 1e-07,
+      "max": 0.001
+    },
+    {
+      "key": "temperature",
+      "label": "Sampling temperature",
+      "type": "float",
+      "default": 1.0,
+      "min": 0,
+      "max": 2
+    },
+    {
+      "key": "eval_size",
+      "label": "Held-out problems",
+      "type": "int",
+      "default": 16,
+      "min": 1,
+      "max": 200
+    },
+    {
+      "key": "save_checkpoint",
+      "label": "Save a resumable checkpoint",
+      "type": "bool",
+      "default": false,
+      "help": "save_state took 53 s when measured."
+    },
+    {
+      "key": "loss_fn",
+      "label": "RL loss",
+      "type": "choice",
+      "default": "importance_sampling",
+      "choices": [
+        "importance_sampling",
+        "ppo",
+        "cispo"
+      ],
+      "slot": true
+    },
+    {
+      "key": "rebind_every",
+      "label": "Rebind the sampler every",
+      "type": "choice",
+      "default": 1,
+      "choices": [
+        1,
+        2,
+        4
+      ],
+      "slot": true,
+      "help": "Steps between save_weights_and_get_sampling_client calls; 1 keeps sampling on-policy."
+    },
+    {
+      "key": "max_tokens",
+      "label": "Max tokens per completion",
+      "type": "int",
+      "default": 512,
+      "min": 1,
+      "max": 8192,
+      "advanced": true,
+      "help": "The service minimum is 512; lower values are raised to 512."
+    },
+    {
+      "key": "seed",
+      "label": "Prompt seed",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 1000000,
+      "advanced": true
+    },
+    {
+      "key": "lora_rank",
+      "label": "LoRA rank",
+      "type": "int",
+      "default": 32,
+      "min": 1,
+      "max": 256,
+      "advanced": true
+    },
+    {
+      "key": "lora_alpha",
+      "label": "LoRA alpha",
+      "type": "int",
+      "default": 64,
+      "min": 1,
+      "max": 512,
+      "advanced": true
+    },
+    {
+      "key": "adam_beta1",
+      "label": "Adam beta1",
+      "type": "float",
+      "default": 0.9,
+      "min": 0,
+      "max": 1,
+      "advanced": true
+    },
+    {
+      "key": "adam_beta2",
+      "label": "Adam beta2",
+      "type": "float",
+      "default": 0.999,
+      "min": 0,
+      "max": 1,
+      "advanced": true
+    },
+    {
+      "key": "adam_eps",
+      "label": "Adam epsilon",
+      "type": "float",
+      "default": 1e-08,
+      "min": 0,
+      "max": 1,
+      "advanced": true
+    },
+    {
+      "key": "weight_decay",
+      "label": "Weight decay",
+      "type": "float",
+      "default": 0.01,
+      "min": 0,
+      "max": 1,
+      "advanced": true
+    }
+  ],
+  "estimate": {"steps": "steps", "unbilled_params": ["save_checkpoint"]},
+  "loop": {
+    "driver": "client",
+    "header": "for step in range(steps)",
+    "header_out": "",
+    "before": [
+      "reward_check",
+      "create_session",
+      "load_tokenizer",
+      "sample"
+    ],
+    "after": [
+      "save_weights_and_rebind",
+      "save_state",
+      "sample",
+      "compare",
+      "stop_session"
+    ],
+    "nodes": [
+      {
+        "op": "save_weights_and_rebind",
+        "lane": "aws",
+        "title": "Rebind sampler",
+        "call": "tc.save_weights_and_get_sampling_client()",
+        "slot": "rebind_every",
+        "out": "sampler on the new weights",
+        "primitive": "save_weights_for_sampler"
+      },
+      {
+        "op": "make_prompts",
+        "lane": "client",
+        "title": "Make prompts",
+        "call": "task.make_problem(rng)",
+        "out": "{prompts_per_step} prompts"
+      },
+      {
+        "op": "sample",
+        "lane": "aws",
+        "title": "Sample groups",
+        "call": "sampler.sample(x, num_samples={group_size})",
+        "out": "completions + logprobs",
+        "primitive": "sample"
+      },
+      {
+        "op": "reward",
+        "lane": "client",
+        "title": "Score",
+        "call": "reward(completion, answer)",
+        "slot": "reward",
+        "out": "rewards"
+      },
+      {
+        "op": "advantage",
+        "lane": "client",
+        "title": "Advantages",
+        "call": "advantages(groups)",
+        "slot": "advantage",
+        "out": "datums with advantages"
+      },
+      {
+        "op": "forward_backward",
+        "lane": "aws",
+        "title": "forward_backward",
+        "call": "tc.forward_backward(datums, loss_fn)",
+        "slot": "loss_fn",
+        "out": "gradient, kept on the GPU",
+        "primitive": "forward_backward"
+      },
+      {
+        "op": "optim_step",
+        "lane": "aws",
+        "title": "optim_step",
+        "call": "tc.optim_step(adam)",
+        "out": "next step",
+        "primitive": "optim_step"
+      }
+    ]
+  },
+  "slots": [
+    {
+      "key": "reward",
+      "node": "reward",
+      "label": "Reward",
+      "file": "reward.py",
+      "contract": "reward(completion: str, answer: int) -> float",
+      "function": "reward",
+      "editable": true,
+      "default": "exact",
+      "variants": [
+        {
+          "id": "exact",
+          "label": "Exact match",
+          "file": "reward.py",
+          "summary": "1 when the first number is the product, else 0.",
+          "watch": "Reward and held-out accuracy rise together.",
+          "short": "exact"
+        },
+        {
+          "id": "partial",
+          "label": "Partial credit",
+          "file": "variants/reward_partial.py",
+          "summary": "1 for the product; a wrong number earns up to 0.5 for digits in the right place.",
+          "watch": "All-wrong groups are no longer all-equal, so they can give a gradient too. Live (one run) all-wrong groups were rare, and about as many groups gave a gradient as with exact.",
+          "short": "partial"
+        },
+        {
+          "id": "format",
+          "label": "Format only",
+          "file": "variants/reward_format.py",
+          "summary": "1 for any bare number. Cannot tell right from wrong.",
+          "watch": "The reward check warns. Live, about half the first answers were not bare numbers, so it still trained, toward bare numbers.",
+          "short": "format only"
+        }
+      ]
+    },
+    {
+      "key": "advantage",
+      "node": "advantage",
+      "label": "Advantage",
+      "file": "advantage.py",
+      "contract": "advantages(groups: list[list[float]]) -> list[list[float] | None]",
+      "function": "advantages",
+      "editable": true,
+      "default": "group_norm",
+      "variants": [
+        {
+          "id": "group_norm",
+          "label": "Group-normalized (GRPO)",
+          "file": "advantage.py",
+          "summary": "(reward - group mean) / group std, per prompt; all-equal groups are skipped.",
+          "watch": "Same as the cookbook's grouped advantages.",
+          "short": "GRPO"
+        },
+        {
+          "id": "mean_baseline",
+          "label": "Group mean, unscaled",
+          "file": "variants/advantage_mean.py",
+          "summary": "reward - group mean, per prompt, without dividing by the spread.",
+          "watch": "Same groups train; advantages keep the size of the reward differences.",
+          "short": "mean"
+        },
+        {
+          "id": "batch_norm",
+          "label": "Batch baseline",
+          "file": "variants/advantage_batch.py",
+          "summary": "(reward - batch mean) / batch std: the cookbook's Monte-Carlo + ReB for one turn.",
+          "watch": "All-equal groups train too: more train tokens and cost per step.",
+          "short": "batch"
+        }
+      ]
+    },
+    {
+      "key": "loss_fn",
+      "node": "forward_backward",
+      "label": "RL loss",
+      "param": "loss_fn",
+      "variants": [
+        {
+          "id": "importance_sampling",
+          "label": "importance_sampling",
+          "summary": "Policy gradient corrected by the trainer/sampler probability ratio.",
+          "watch": "Returns the rollout_corr/* metrics, so the sampler-trainer KL is charted.",
+          "short": "IS"
+        },
+        {
+          "id": "ppo",
+          "label": "ppo",
+          "summary": "The same ratio, clipped. A policy loss only; there is no critic.",
+          "watch": "No rollout_corr/* metrics were published for ppo, so the KL chart stays empty.",
+          "short": "ppo"
+        },
+        {
+          "id": "cispo",
+          "label": "cispo",
+          "summary": "Clips the importance weight instead of the update.",
+          "watch": "The cookbook's multi-turn code RL used it. No KL chart, as with ppo.",
+          "short": "cispo"
+        }
+      ]
+    },
+    {
+      "key": "rebind_every",
+      "node": "save_weights_and_rebind",
+      "label": "Sampler sync",
+      "param": "rebind_every",
+      "variants": [
+        {
+          "id": 1,
+          "label": "Every step",
+          "summary": "On-policy: every sample comes from the weights being trained.",
+          "watch": "About 20 s of each step is the rebind (measured).",
+          "short": "every step"
+        },
+        {
+          "id": 2,
+          "label": "Every 2 steps",
+          "summary": "Every other step samples from weights one update old.",
+          "watch": "Half the rebinds and MODEL packages; the KL and 'behind' chart show the lag.",
+          "short": "every 2"
+        },
+        {
+          "id": 4,
+          "label": "Every 4 steps",
+          "summary": "Samples can be up to 3 updates behind the trainer.",
+          "watch": "Faster steps, more off-policy data for importance_sampling to correct.",
+          "short": "every 4"
+        }
+      ]
+    }
+  ]
+}

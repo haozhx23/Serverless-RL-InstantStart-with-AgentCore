@@ -1,0 +1,39 @@
+{
+  "run_id": "r-261102-074336-6086",
+  "scenario": "rl-arith",
+  "backend": "live",
+  "aws": {
+    "region": "us-west-2",
+    "role_arn": "arn:aws:iam::111122223333:role/service-role/AmazonSageMaker-ServerlessRL-InstantStart",
+    "model_package_group_arn": "arn:aws:sagemaker:us-west-2:111122223333:model-package-group/serverless-rl-instantstart",
+    "s3_output_path": "s3://sagemaker-us-west-2-111122223333/serverless-rl-instantstart/",
+    "session_name_prefix": "instantstart"
+  },
+  "params": {
+    "base_model": "openai/gpt-oss-20b",
+    "steps": 6,
+    "prompts_per_step": 8,
+    "group_size": 4,
+    "learning_rate": 4e-05,
+    "temperature": 1.0,
+    "eval_size": 16,
+    "save_checkpoint": false,
+    "loss_fn": "ppo",
+    "rebind_every": 1,
+    "max_tokens": 512,
+    "seed": 0,
+    "lora_rank": 32,
+    "lora_alpha": 64,
+    "adam_beta1": 0.9,
+    "adam_beta2": 0.999,
+    "adam_eps": 1e-08,
+    "weight_decay": 0.01
+  },
+  "variants": {
+    "reward": "exact",
+    "advantage": "group_norm",
+    "loss_fn": "ppo",
+    "rebind_every": 1
+  },
+  "custom_files": []
+}

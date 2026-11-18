@@ -1,0 +1,33 @@
+{
+  "name": "dpo-facts-261102-r-261102-074959-357c",
+  "source_run": "r-261102-074959-357c",
+  "scenario": "dpo-facts",
+  "recorded_ts": 1793605801.343,
+  "model": "openai/gpt-oss-20b",
+  "region": "us-west-2",
+  "duration_s": 226.633,
+  "cost_usd": 0.0019673399999999997,
+  "tokens": {
+    "prefill": 206,
+    "sample": 1355,
+    "train": 4267
+  },
+  "eval": {
+    "label": "Questions answered with the chosen answer",
+    "before": 0,
+    "after": 0,
+    "n": 8,
+    "unit": "count"
+  },
+  "scrubbed": {
+    "date": "2026-11-18",
+    "account_id": "111122223333",
+    "removed": [
+      "2 mlflow events",
+      "stdout.log",
+      "6 copies of templates/_shared files",
+      "README.md",
+      "1 lines marked for the release"
+    ]
+  }
+}

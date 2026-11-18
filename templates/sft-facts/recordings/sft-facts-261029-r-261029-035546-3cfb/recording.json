@@ -1,0 +1,33 @@
+{
+  "name": "sft-facts-261029-r-261029-035546-3cfb",
+  "source_run": "r-261029-035546-3cfb",
+  "scenario": "sft-facts",
+  "recorded_ts": 1793246148.373,
+  "model": "openai/gpt-oss-20b",
+  "region": "us-west-2",
+  "duration_s": 194.619,
+  "cost_usd": 0.00042995999999999996,
+  "tokens": {
+    "prefill": 206,
+    "sample": 122,
+    "train": 1024
+  },
+  "eval": {
+    "label": "Questions answered with the trained fact",
+    "before": 0,
+    "after": 7,
+    "n": 8,
+    "unit": "count"
+  },
+  "scrubbed": {
+    "date": "2026-11-18",
+    "account_id": "111122223333",
+    "removed": [
+      "0 mlflow events",
+      "stdout.log",
+      "5 copies of templates/_shared files",
+      "README.md",
+      "1 lines marked for the release"
+    ]
+  }
+}

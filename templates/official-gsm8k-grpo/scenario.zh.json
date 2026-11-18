@@ -1,0 +1,211 @@
+{
+  "fields": {
+    "title": {
+      "en": "GRPO on GSM8K math word problems",
+      "zh": "GSM8K 数学推理训练（GRPO）"
+    },
+    "technique": {
+      "en": "RL · single turn",
+      "zh": "RL · 单轮"
+    },
+    "summary": {
+      "en": "The sample the AWS launch blog walks through, with its code unchanged: GPT-OSS solves grade-school math word problems step by step, a parser checks the number after \"####\", and GRPO with the ppo loss reinforces the right answers. 10 steps on 40 problems.",
+      "zh": "保留 AWS 发布博客介绍的官方样例代码：GPT-OSS 逐步解答小学数学应用题，解析器检查 \"####\" 后的数字；GRPO 采用 ppo loss，根据答案正确性更新模型。使用 40 道题，训练 10 步。"
+    },
+    "you_will_see.0": {
+      "en": "The official notebook's loop drawn as it runs, with the task code unchanged in official.py",
+      "zh": "实时查看官方 notebook 中循环的执行情况，任务代码原样保留在 official.py 中"
+    },
+    "you_will_see.1": {
+      "en": "Held-out accuracy before and after, on 30 test problems x 4 samples, to compare with the published 56% to 75%",
+      "zh": "用 30 道测试题、每题 4 次采样，对比训练前后的准确率，并参考官方公布的 56% → 75%"
+    },
+    "you_will_see.2": {
+      "en": "Batch accuracy, groups with signal and the ppo loss's diagnostics at every step",
+      "zh": "逐步查看 batch 准确率、有训练信号的组，以及 ppo loss 的诊断指标"
+    },
+    "evidence.note": {
+      "en": "Live on 2026-10-29 with the notebook's defaults: held-out accuracy 56% to 78% (67 to 93 of 120 samples, about 4 to 5 points of standard error), against the published 56% to 75%. About 46 s per step; the merged save at the end took 153 s. BillableTokenUsage matched the estimate.",
+      "zh": "2026-10-29 使用 notebook 默认参数进行实时运行：留出集准确率从 56% 升至 78%（120 次采样中，正确回答数从 67 增至 93，标准误约 4–5 个百分点），官方公布结果为 56% → 75%。每步约 46 s，最后保存合并权重耗时 153 s。BillableTokenUsage 与估算一致。"
+    },
+    "source.published": {
+      "en": "AWS launch blog (2026-10-22): 10 training steps on 40 problems took held-out accuracy from 56% to 75%.",
+      "zh": "AWS 发布博客（2026-10-22）：使用 40 道题训练 10 步后，留出集准确率从 56% 升至 75%。"
+    },
+    "node.make_prompts.title": {
+      "en": "Draw questions",
+      "zh": "抽取题目"
+    },
+    "node.make_prompts.out": {
+      "en": "{prompts_per_step} questions",
+      "zh": "{prompts_per_step} 道题"
+    },
+    "node.sample.title": {
+      "en": "Sample K responses",
+      "zh": "每题采样 K 个回答"
+    },
+    "node.sample.out": {
+      "en": "responses + logprobs",
+      "zh": "回答 + logprob"
+    },
+    "node.reward.title": {
+      "en": "Score",
+      "zh": "打分"
+    },
+    "node.reward.out": {
+      "en": "rewards",
+      "zh": "reward"
+    },
+    "node.advantage.title": {
+      "en": "GRPO advantages",
+      "zh": "GRPO advantage"
+    },
+    "node.advantage.out": {
+      "en": "datums",
+      "zh": "datum"
+    },
+    "node.forward_backward.title": {
+      "en": "forward_backward",
+      "zh": "forward_backward"
+    },
+    "node.forward_backward.out": {
+      "en": "gradient, kept on the GPU",
+      "zh": "梯度保存在 GPU 上"
+    },
+    "node.optim_step.title": {
+      "en": "optim_step",
+      "zh": "optim_step"
+    },
+    "node.save_weights_and_rebind.title": {
+      "en": "Rebind sampler",
+      "zh": "重新绑定 sampler"
+    },
+    "node.save_weights_and_rebind.out": {
+      "en": "the policy just trained",
+      "zh": "刚完成更新的策略"
+    },
+    "node.save_state.title": {
+      "en": "Checkpoint",
+      "zh": "保存 checkpoint"
+    },
+    "node.save_state.out": {
+      "en": "next step",
+      "zh": "下一步"
+    },
+    "param.base_model.label": {
+      "en": "Base model",
+      "zh": "基座模型"
+    },
+    "param.base_model.help": {
+      "en": "official.py's prompt template is GPT-OSS's harmony chat format; another model needs a different template.",
+      "zh": "official.py 的 prompt 模板采用 GPT-OSS 的 harmony 对话格式，使用其他模型时需要更换模板。"
+    },
+    "param.steps.label": {
+      "en": "Training steps",
+      "zh": "训练步数"
+    },
+    "param.steps.help": {
+      "en": "NUM_STEPS in the notebook.",
+      "zh": "对应 notebook 中的 NUM_STEPS。"
+    },
+    "param.prompts_per_step.label": {
+      "en": "Questions per step",
+      "zh": "每步题数"
+    },
+    "param.prompts_per_step.help": {
+      "en": "PROMPTS_PER_STEP in the notebook.",
+      "zh": "对应 notebook 中的 PROMPTS_PER_STEP。"
+    },
+    "param.group_size.label": {
+      "en": "Responses per question",
+      "zh": "每题回答数"
+    },
+    "param.group_size.help": {
+      "en": "RESPONSES_PER_PROMPT (K) in the notebook.",
+      "zh": "对应 notebook 中的 RESPONSES_PER_PROMPT（K）。"
+    },
+    "param.learning_rate.label": {
+      "en": "Learning rate",
+      "zh": "学习率"
+    },
+    "param.learning_rate.help": {
+      "en": "ADAM_PARAMS in the notebook; the other Adam values are the SDK defaults, as there.",
+      "zh": "对应 notebook 中的 ADAM_PARAMS。与原样例一致，其余 Adam 参数使用 SDK 默认值。"
+    },
+    "param.loss_fn.label": {
+      "en": "RL loss",
+      "zh": "RL loss"
+    },
+    "param.loss_fn.help": {
+      "en": "The notebook uses ppo.",
+      "zh": "原 notebook 使用 ppo。"
+    },
+    "param.temperature.label": {
+      "en": "Sampling temperature",
+      "zh": "采样温度"
+    },
+    "param.top_p.label": {
+      "en": "Top-p",
+      "zh": "Top-p"
+    },
+    "param.max_tokens.label": {
+      "en": "Max tokens per response",
+      "zh": "每个回答的最大 token 数"
+    },
+    "param.max_tokens.help": {
+      "en": "512 in the notebook, also the service minimum.",
+      "zh": "原 notebook 设为 512，这也是服务允许的最小值。"
+    },
+    "param.eval_samples.label": {
+      "en": "Samples per held-out problem",
+      "zh": "每道留出题的采样数"
+    },
+    "param.eval_samples.help": {
+      "en": "EVAL_SAMPLES_PER_PROBLEM in the notebook.",
+      "zh": "对应 notebook 中的 EVAL_SAMPLES_PER_PROBLEM。"
+    },
+    "param.save_state_every.label": {
+      "en": "Checkpoint every (steps)",
+      "zh": "Checkpoint 保存间隔（步）"
+    },
+    "param.save_state_every.help": {
+      "en": "SAVE_STATE_EVERY in the notebook; 0 disables.",
+      "zh": "对应 notebook 中的 SAVE_STATE_EVERY；设为 0 时不保存。"
+    },
+    "param.lora_rank.label": {
+      "en": "LoRA rank",
+      "zh": "LoRA rank"
+    },
+    "param.lora_alpha.label": {
+      "en": "LoRA alpha",
+      "zh": "LoRA alpha"
+    },
+    "metric.batch_accuracy.label": {
+      "en": "Batch accuracy",
+      "zh": "Batch 准确率"
+    },
+    "metric.groups_with_signal.label": {
+      "en": "Groups with signal",
+      "zh": "有训练信号的组"
+    },
+    "metric.ppo_kl.label": {
+      "en": "PPO KL (actor/ppo_kl)",
+      "zh": "PPO KL（actor/ppo_kl）"
+    },
+    "metric.pg_clipfrac.label": {
+      "en": "Clipped fraction (actor/pg_clipfrac)",
+      "zh": "截断比例（actor/pg_clipfrac）"
+    },
+    "metric.pg_loss.label": {
+      "en": "Policy loss (actor/pg_loss)",
+      "zh": "策略 loss（actor/pg_loss）"
+    }
+  },
+  "events": {
+    "The session uses this app's execution role and model package group instead of the sample's SageMakerTrainingSessionRole and gsm8k-grpo-training-sessions group. The training code is the notebook's.": "session 使用本应用的执行角色和 model package group，替代样例中的 SageMakerTrainingSessionRole 和 gsm8k-grpo-training-sessions；训练代码保留 notebook 原文。",
+    "As in the official sample, only the learning rate is set; the other Adam parameters are the SDK defaults (beta2 0.999, weight decay 0.01).": "与官方样例一致，仅设置学习率；其余 Adam 参数使用 SDK 默认值（beta2 0.999、weight decay 0.01）。",
+    "Held-out GSM8K problems: correct samples of 4, base model vs trained weights": "GSM8K 留出题：对比基座模型与训练后模型在 4 次采样中的正确回答数",
+    "Held-out samples answered correctly (30 problems x 4)": "留出题的正确回答数（30 道题 × 4 次采样）",
+    "Merged model for deployment": "合并后的模型，用于部署"
+  }
+}

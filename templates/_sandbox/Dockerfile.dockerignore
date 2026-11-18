@@ -1,0 +1,5 @@
+# Build context is templates/; the image needs only these files.
+*
+!_sandbox/main.py
+!_sandbox/requirements.txt
+!_shared/sandbox_exec.py

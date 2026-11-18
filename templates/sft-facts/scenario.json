@@ -1,0 +1,191 @@
+{
+  "id": "sft-facts",
+  "order": 1,
+  "engine": "training-session",
+  "title": "Supervised fine-tuning on a small dataset",
+  "technique": "SFT",
+  "summary": "Supervised fine-tuning on facts the base model cannot know, then the same questions asked to the base model and to the trained weights.",
+  "status": "live-verified",
+  "probe_example": "What is the codename of project Alder?",
+  "evidence": {
+    "basis": "live run r-261029-035546-3cfb of this template",
+    "date": "2026-10-29",
+    "region": "us-west-2",
+    "model": "openai/gpt-oss-20b",
+    "duration_s": 195,
+    "cost_usd": 0.00043,
+    "note": "Live on 2026-10-29: ready in 10.8 s, loss 7.99 to 0.03 by step 6, and 7 of 8 questions answered with the trained fact. The first forward_backward took 52 s, the others about 4 s. BillableTokenUsage matched the estimate."
+  },
+  "you_write": [
+    "data.py",
+    "loop.py"
+  ],
+  "aws_runs": [
+    "create session",
+    "forward_backward",
+    "optim_step",
+    "save_state",
+    "save weights + rebind",
+    "sample"
+  ],
+  "you_will_see": [
+    "The whole loop is two API calls per step, made by a for-loop in your process",
+    "Session from request to Running in about 10 s, loss falling over 8 steps",
+    "Ask the model a question mid-run: it answers from a snapshot of the weights at that step"
+  ],
+  "files": [
+    "loop.py",
+    "data.py"
+  ],
+  "metrics": [
+    {
+      "key": "loss",
+      "label": "Training loss",
+      "format": "0.000"
+    }
+  ],
+  "params": [
+    {
+      "key": "base_model",
+      "label": "Base model",
+      "type": "model",
+      "default": "openai/gpt-oss-20b"
+    },
+    {
+      "key": "steps",
+      "label": "Training steps",
+      "type": "int",
+      "default": 8,
+      "min": 1,
+      "max": 40
+    },
+    {
+      "key": "learning_rate",
+      "label": "Learning rate",
+      "type": "float",
+      "default": 0.0002,
+      "min": 1e-06,
+      "max": 0.01
+    },
+    {
+      "key": "save_checkpoint",
+      "label": "Save a resumable checkpoint",
+      "type": "bool",
+      "default": true,
+      "help": "save_state took 53 s when measured; it writes weights + optimizer state to a CHECKPOINT package."
+    },
+    {
+      "key": "lora_rank",
+      "label": "LoRA rank",
+      "type": "int",
+      "default": 32,
+      "min": 1,
+      "max": 256,
+      "advanced": true
+    },
+    {
+      "key": "lora_alpha",
+      "label": "LoRA alpha",
+      "type": "int",
+      "default": 64,
+      "min": 1,
+      "max": 512,
+      "advanced": true
+    },
+    {
+      "key": "adam_beta1",
+      "label": "Adam beta1",
+      "type": "float",
+      "default": 0.9,
+      "min": 0,
+      "max": 1,
+      "advanced": true
+    },
+    {
+      "key": "adam_beta2",
+      "label": "Adam beta2",
+      "type": "float",
+      "default": 0.999,
+      "min": 0,
+      "max": 1,
+      "advanced": true
+    },
+    {
+      "key": "adam_eps",
+      "label": "Adam epsilon",
+      "type": "float",
+      "default": 1e-08,
+      "min": 0,
+      "max": 1,
+      "advanced": true
+    },
+    {
+      "key": "weight_decay",
+      "label": "Weight decay",
+      "type": "float",
+      "default": 0.01,
+      "min": 0,
+      "max": 1,
+      "advanced": true
+    }
+  ],
+  "estimate": {"steps": "steps", "unbilled_params": ["save_checkpoint"]},
+  "loop": {
+    "driver": "client",
+    "header": "for step in range(steps)",
+    "header_out": "the batch from data.py",
+    "before": [
+      "create_session",
+      "load_tokenizer",
+      "build_batch",
+      "sample"
+    ],
+    "after": [
+      "save_state",
+      "save_weights_and_rebind",
+      "sample",
+      "compare",
+      "stop_session"
+    ],
+    "nodes": [
+      {
+        "op": "forward_backward",
+        "lane": "aws",
+        "title": "forward_backward",
+        "call": "tc.forward_backward(batch, \"cross_entropy\")",
+        "out": "gradient, kept on the GPU",
+        "primitive": "forward_backward"
+      },
+      {
+        "op": "optim_step",
+        "lane": "aws",
+        "title": "optim_step",
+        "call": "tc.optim_step(adam)",
+        "out": "next step",
+        "primitive": "optim_step"
+      }
+    ]
+  },
+  "slots": [
+    {
+      "key": "data",
+      "node": null,
+      "label": "Training data",
+      "file": "data.py",
+      "contract": "FACTS: list[tuple[str, str]]",
+      "function": "FACTS",
+      "editable": true,
+      "default": "facts",
+      "variants": [
+        {
+          "id": "facts",
+          "label": "Eight made-up facts",
+          "file": "data.py",
+          "summary": "Question and answer pairs the base model cannot know.",
+          "watch": "Edit them: the batch is built from this list in your process.",
+          "short": "facts"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,201 @@
+{
+  "fields": {
+    "title": {
+      "en": "Write the loss yourself: DPO on preference pairs",
+      "zh": "自定义 loss：DPO 偏好优化"
+    },
+    "technique": {
+      "en": "Preference · custom loss",
+      "zh": "偏好 · 自定义 loss"
+    },
+    "summary": {
+      "en": "DPO is not one of the service's losses. The loop computes it in your process from forward log-probs and trains it through importance_sampling at ratio 1. Swap in IPO or a hinge, or write your own.",
+      "zh": "服务未提供 DPO loss。本地训练循环根据 forward 返回的 log-prob 计算 DPO loss，通过概率比为 1 的 importance_sampling 进行训练。支持替换为 IPO、hinge，或自行定义 loss。"
+    },
+    "you_will_see.0": {
+      "en": "A loss the service does not ship, computed between two API calls in your process",
+      "zh": "在本地进程的两次 API 调用之间，计算服务未提供的自定义 loss"
+    },
+    "you_will_see.1": {
+      "en": "One extra forward per step, billed as train tokens: the price of a custom loss",
+      "zh": "自定义 loss 每步需要额外调用一次 forward，按 train token 计费"
+    },
+    "you_will_see.2": {
+      "en": "Loss, pairs preferred and the implicit rewards of chosen and rejected answers per step",
+      "zh": "逐步查看 loss、偏好判断正确的样本对数，以及 chosen 和 rejected 答案的隐式 reward"
+    },
+    "evidence.note": {
+      "en": "Live on 2026-10-29: the custom loss trains (0.69 to 0.0001, every pair preferred, implicit rewards +2.2 chosen and -7.5 rejected), but greedy answers do not become the chosen ones (0 of 8) and drift from the base model's. DPO widens the gap between the two answers; for facts the base model cannot know, the chosen answer stays unlikely to be generated. IPO and hinge ran live once each on 2026-11-02: IPO's implicit-reward margin settled at 0.47, near its 0.5 target, where DPO's ran to 9.6; hinge's loss reached 0 by step 3. Neither changed the greedy answers (0 of 8 chosen), as with DPO.",
+      "zh": "2026-10-29 实时运行：自定义 loss 从 0.69 降至 0.0001，所有样本对的偏好判断均正确，chosen 和 rejected 的隐式 reward 分别为 +2.2 和 −7.5。但贪心解码未生成任何 chosen 答案（8 个问题中为 0 个），回答还偏离了基座模型原有的回答。DPO 拉大了两个答案之间的差距，但对于基座模型不可能知道的事实，生成 chosen 答案的概率仍然很低。IPO 和 hinge 于 2026-11-02 各实时运行 1 次：IPO 的隐式 reward 差值稳定在 0.47，接近目标值 0.5，而 DPO 一路增大到 9.6；hinge 的 loss 在第 3 步降到 0。两者都没有改变贪心解码的回答（8 题中选中 chosen 的为 0），与 DPO 相同。"
+    },
+    "node.forward.title": {
+      "en": "forward",
+      "zh": "forward"
+    },
+    "node.forward.out": {
+      "en": "per-token log-probs, no gradient",
+      "zh": "逐 token log-prob，不计算梯度"
+    },
+    "node.preference_loss.title": {
+      "en": "Your loss",
+      "zh": "自定义 loss"
+    },
+    "node.preference_loss.out": {
+      "en": "advantage = -dloss/dlogp",
+      "zh": "advantage = -dloss/dlogp"
+    },
+    "node.forward_backward.title": {
+      "en": "forward_backward",
+      "zh": "forward_backward"
+    },
+    "node.forward_backward.out": {
+      "en": "your loss's gradient, on the GPU",
+      "zh": "自定义 loss 的梯度，保存在 GPU 上"
+    },
+    "node.optim_step.title": {
+      "en": "optim_step",
+      "zh": "optim_step"
+    },
+    "node.optim_step.out": {
+      "en": "next step",
+      "zh": "下一步"
+    },
+    "slot.loss.label": {
+      "en": "Preference loss",
+      "zh": "偏好 loss"
+    },
+    "slot.loss.dpo.label": {
+      "en": "DPO",
+      "zh": "DPO"
+    },
+    "slot.loss.dpo.short": {
+      "en": "DPO",
+      "zh": "DPO"
+    },
+    "slot.loss.dpo.summary": {
+      "en": "-log sigmoid(beta * margin): push the margin wider, ever more gently.",
+      "zh": "-log sigmoid(beta * margin)：增大 margin，随其增大逐渐减弱更新力度。"
+    },
+    "slot.loss.dpo.watch": {
+      "en": "The loss falls fast, then flattens as the sigmoid saturates.",
+      "zh": "loss 先快速下降，sigmoid 饱和后趋于平缓。"
+    },
+    "slot.loss.ipo.label": {
+      "en": "IPO",
+      "zh": "IPO"
+    },
+    "slot.loss.ipo.short": {
+      "en": "IPO",
+      "zh": "IPO"
+    },
+    "slot.loss.ipo.summary": {
+      "en": "(margin - 1/(2 beta))^2: pull the margin to a fixed target.",
+      "zh": "(margin - 1/(2 beta))^2：使 margin 接近固定的目标值。"
+    },
+    "slot.loss.ipo.watch": {
+      "en": "The margin stops growing near its target instead of running away.",
+      "zh": "margin 会在目标值附近停止增长，而不会持续增大。"
+    },
+    "slot.loss.hinge.label": {
+      "en": "Hinge (SLiC)",
+      "zh": "Hinge（SLiC）"
+    },
+    "slot.loss.hinge.short": {
+      "en": "hinge",
+      "zh": "hinge"
+    },
+    "slot.loss.hinge.summary": {
+      "en": "max(0, 1 - beta * margin): full push until a pair is won, then none.",
+      "zh": "max(0, 1 - beta * margin)：在达到目标前持续增大 margin，达到后停止更新。"
+    },
+    "slot.loss.hinge.watch": {
+      "en": "Every pair pushes equally until its scaled margin passes 1.",
+      "zh": "缩放后的 margin 超过 1 之前，每个样本对的更新力度相同。"
+    },
+    "slot.data.label": {
+      "en": "Preference pairs",
+      "zh": "偏好样本对"
+    },
+    "slot.data.facts.label": {
+      "en": "Made-up facts, right vs wrong",
+      "zh": "虚构事实：正确与错误答案"
+    },
+    "slot.data.facts.short": {
+      "en": "facts",
+      "zh": "事实"
+    },
+    "slot.data.facts.summary": {
+      "en": "Eight questions, each with a chosen and a rejected answer.",
+      "zh": "八个问题，每个问题包含一个 chosen 答案和一个 rejected 答案。"
+    },
+    "slot.data.facts.watch": {
+      "en": "Edit them: pairs are scored in your process; only token ids reach the service.",
+      "zh": "偏好样本对可编辑，评分在本地进程中完成，服务端仅接收 token ID。"
+    },
+    "param.base_model.label": {
+      "en": "Base model",
+      "zh": "基座模型"
+    },
+    "param.steps.label": {
+      "en": "Training steps",
+      "zh": "训练步数"
+    },
+    "param.beta.label": {
+      "en": "Beta",
+      "zh": "Beta"
+    },
+    "param.beta.help": {
+      "en": "Scales the margin inside the loss; the slot's loss_and_grad receives it.",
+      "zh": "用于缩放 loss 中的 margin，会传给插槽的 loss_and_grad 函数。"
+    },
+    "param.learning_rate.label": {
+      "en": "Learning rate",
+      "zh": "学习率"
+    },
+    "param.lora_rank.label": {
+      "en": "LoRA rank",
+      "zh": "LoRA rank"
+    },
+    "param.lora_alpha.label": {
+      "en": "LoRA alpha",
+      "zh": "LoRA alpha"
+    },
+    "param.adam_beta1.label": {
+      "en": "Adam beta1",
+      "zh": "Adam beta1"
+    },
+    "param.adam_beta2.label": {
+      "en": "Adam beta2",
+      "zh": "Adam beta2"
+    },
+    "param.adam_eps.label": {
+      "en": "Adam epsilon",
+      "zh": "Adam epsilon"
+    },
+    "param.weight_decay.label": {
+      "en": "Weight decay",
+      "zh": "权重衰减（weight decay）"
+    },
+    "metric.loss.label": {
+      "en": "Preference loss",
+      "zh": "偏好 loss"
+    },
+    "metric.pairs_preferred.label": {
+      "en": "Pairs preferred correctly",
+      "zh": "偏好判断正确的样本对数"
+    },
+    "metric.chosen_reward.label": {
+      "en": "Implicit reward, chosen",
+      "zh": "chosen 答案的隐式 reward"
+    },
+    "metric.rejected_reward.label": {
+      "en": "Implicit reward, rejected",
+      "zh": "rejected 答案的隐式 reward"
+    }
+  },
+  "events": {
+    "Policy log-probs come from forward on the training engine, never from the sampler: the two engines disagree slightly on the same tokens, and the cookbook's preference recipe uses the trainer's numbers for the side that drives the gradient.": "策略的 log-prob 由训练引擎的 forward 计算，不使用 sampler 的数值。两个引擎对相同 token 的计算结果略有差异；cookbook 的偏好训练方案使用 trainer 的数值来计算梯度。",
+    "Same questions, base model vs trained weights (expected = the chosen answer)": "同一组问题：对比基座模型与训练后模型（期望答案 = chosen 答案）",
+    "Questions answered with the chosen answer": "生成 chosen 答案的问题数"
+  }
+}
