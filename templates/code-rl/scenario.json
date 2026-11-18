@@ -16,7 +16,7 @@
     "model": "openai/gpt-oss-20b",
     "duration_s": 337,
     "cost_usd": 0.01443,
-    "note": "One live run on 2026-11-10 with the defaults (6 steps, 8 functions x 4 answers, one sandbox session per answer). The sandbox side worked: 223 sessions opened and stopped, none throttled, first call p50 1.57 s, 3.8 to 4.9 s of testing per step. Training did not show: the base model already passed almost every test (mean reward 0.98 to 1.0, held-out 8 to 8), and only steps 0 and 2 had groups with a gradient, so the problems need to be harder. Training tokens $0.0144 (matches BillableTokenUsage); AgentCore Runtime $0.0304 for the 223 sessions (usage logs x list price), about twice the tokens. An earlier run that day prompted a plain Python file to continue: gpt-oss-20b wrote prose in all 192 answers, which is why the prompt uses the harmony format."
+    "note": "Default-run reference (6 steps, 8 functions × 4 answers): all 223 sandbox sessions were stopped; first-request p50 was 1.57 s. Held-out results stayed at 8/8 because the base model already passed almost all tests (mean reward 0.98–1.0), so this run does not demonstrate a training improvement. Training tokens cost $0.0144; AgentCore usage was estimated at $0.0304 from usage logs and list price."
   },
   "you_write": [
     "task.py",
@@ -32,7 +32,7 @@
     "AgentCore Runtime sandbox sessions"
   ],
   "you_will_see": [
-    "A fourth block on your side of the loop that runs in AgentCore Runtime, not in this process: its sessions, cold starts and AgentCore cost",
+    "View code execution in AgentCore Runtime alongside the training loop: session counts, cold starts and runtime costs",
     "A reward check in the sandbox before the training session exists: correct, wrong and broken functions, one that exits before its tests finish, one that never returns",
     "Reward, share of bodies passing every test, share with no result, and the sandbox's cold start per step"
   ],

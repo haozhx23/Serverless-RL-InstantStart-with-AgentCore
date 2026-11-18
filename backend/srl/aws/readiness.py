@@ -57,9 +57,9 @@ def check_credentials(ctx: AwsContext) -> dict:
 
 
 def check_models(ctx: AwsContext) -> tuple[dict, list[str]]:
-    why = L("Training sessions offer a fixed list of base models per region. The list comes from the "
-            "service, so names are used exactly as returned (Gemma is lowercase, unlike the docs).",
-            "training session 在每个区域提供固定的基座模型列表。模型名称以服务返回值为准（Gemma 的名称为小写，与文档不同）。")
+    why = L("Training sessions offer a list of base models for each region. Model identifiers are shown "
+            "as returned by the service.",
+            "Training session 按区域提供可训练的基座模型列表，模型标识以服务返回值为准。")
     title = L("Trainable base models", "可训练的基座模型")
     if not ctx.ready:
         return _check("models", "account", title, "unverified", "needs AWS credentials", why), []
@@ -204,9 +204,10 @@ def check_quota(ctx: AwsContext) -> dict:
 
 def check_sdk() -> dict:
     title = L("Training Session SDK", "Training Session SDK")
-    why = L("The templates were verified with sagemaker-train 1.27.0 and boto3 1.43.119. The AWS CLI 2.36.15 "
-            "has no training-session commands, so everything goes through the Python SDK.",
-            "模板已使用 sagemaker-train 1.27.0 和 boto3 1.43.119 验证。AWS CLI 2.36.15 不提供 training-session 命令，因此相关操作均通过 Python SDK 执行。")
+    why = L("Training-session operations use the Python SDK. This check verifies required dependencies "
+            "and compares sagemaker-train with the application's supported SDK release.",
+            "Training session 操作通过 Python SDK 执行。此项检查所需依赖是否已安装，并核对 sagemaker-train "
+            "是否与应用支持的 SDK 一致。")
     found = {}
     for pkg in ("sagemaker-train", "boto3", "transformers"):
         try:
@@ -223,9 +224,9 @@ def check_sdk() -> dict:
 
 def check_tokenizer() -> dict:
     title = L("Tokenizer cache", "Tokenizer 缓存")
-    why = L("The service takes token ids, so each run tokenizes locally. The first download of the "
-            "gpt-oss-20b tokenizer took about 49 s, which looks like a hang during a demo.",
-            "服务接收 token ID，因此每次运行都需要在本地进行分词。首次下载 gpt-oss-20b tokenizer 约需 49 s，演示时可能被误认为程序无响应。")
+    why = L("The service accepts token IDs, so the training process tokenizes locally. Download the "
+            "tokenizer before launching to avoid the initial download delay.",
+            "服务接收 token ID，训练进程需要在本地进行分词。提前下载 tokenizer，可避免首次运行时等待下载。")
     fix = {"id": "warm-tokenizer", "label": L("Download now", "现在下载"),
            "detail": L(f"Downloads the {DEFAULT_TOKENIZER} tokenizer into the local cache.",
                        f"将 {DEFAULT_TOKENIZER} 的 tokenizer 下载到本地缓存。")}

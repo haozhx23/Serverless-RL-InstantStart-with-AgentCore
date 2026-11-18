@@ -13,8 +13,8 @@
       "zh": "模型编写 Python 函数；AgentCore Runtime 沙箱运行函数对应的测试，通过测试的比例即为 reward。模型生成的代码不在本地进程中执行，本地进程持有本机的 AWS 凭证和 training session。"
     },
     "you_will_see.0": {
-      "en": "A fourth block on your side of the loop that runs in AgentCore Runtime, not in this process: its sessions, cold starts and AgentCore cost",
-      "zh": "循环中新增一个自定义代码节点，它在 AgentCore Runtime 中执行而不是在本地进程中：展示 session 数、冷启动耗时和 AgentCore 费用"
+      "en": "View code execution in AgentCore Runtime alongside the training loop: session counts, cold starts and runtime costs",
+      "zh": "结合训练循环查看 AgentCore Runtime 中的代码执行，包括 session 数、冷启动耗时和运行费用"
     },
     "you_will_see.1": {
       "en": "A reward check in the sandbox before the training session exists: correct, wrong and broken functions, one that exits before its tests finish, one that never returns",
@@ -25,8 +25,8 @@
       "zh": "逐步查看 reward、通过全部测试的函数体占比、没有结果的函数体占比，以及沙箱冷启动耗时"
     },
     "evidence.note": {
-      "en": "One live run on 2026-11-10 with the defaults (6 steps, 8 functions x 4 answers, one sandbox session per answer). The sandbox side worked: 223 sessions opened and stopped, none throttled, first call p50 1.57 s, 3.8 to 4.9 s of testing per step. Training did not show: the base model already passed almost every test (mean reward 0.98 to 1.0, held-out 8 to 8), and only steps 0 and 2 had groups with a gradient, so the problems need to be harder. Training tokens $0.0144 (matches BillableTokenUsage); AgentCore Runtime $0.0304 for the 223 sessions (usage logs x list price), about twice the tokens. An earlier run that day prompted a plain Python file to continue: gpt-oss-20b wrote prose in all 192 answers, which is why the prompt uses the harmony format.",
-      "zh": "2026-11-10 使用默认设置进行一次实时运行（6 步，8 个函数 × 4 个回答，每个回答一个沙箱 session）。沙箱一侧按预期工作：新建并停止 223 个 session，没有被限流，首次调用 p50 1.57 s，每步测试耗时 3.8–4.9 s。训练效果没有显现：基座模型已经能通过几乎所有测试（平均 reward 0.98–1.0，留出集 8 → 8），只有第 0、2 步有产生梯度的组，题目需要更难。训练 token 费用 $0.0144（与 BillableTokenUsage 一致）；223 个 session 的 AgentCore Runtime 费用 $0.0304（用量日志 × 标价），约为 token 费用的 2 倍。同日较早的一次运行让模型续写普通 Python 文件，gpt-oss-20b 的 192 个回答全是文字推理，因此 prompt 改用 harmony 格式。"
+      "en": "Default-run reference (6 steps, 8 functions × 4 answers): all 223 sandbox sessions were stopped; first-request p50 was 1.57 s. Held-out results stayed at 8/8 because the base model already passed almost all tests (mean reward 0.98–1.0), so this run does not demonstrate a training improvement. Training tokens cost $0.0144; AgentCore usage was estimated at $0.0304 from usage logs and list price.",
+      "zh": "默认设置运行参考（6 步，8 个函数 × 4 个回答）：223 个沙箱 session 均已停止，首次请求 p50 为 1.57 s。基座模型已能通过几乎全部测试（平均 reward 0.98–1.0），留出集结果保持为 8/8，因此该次运行未显示训练效果提升。训练 token 费用为 $0.0144；按用量日志和标价估算的 AgentCore 费用为 $0.0304。"
     },
     "sandbox.executes": {
       "en": "The code of each sampled answer and its tests, one microVM per answer (or per group)",

@@ -2,7 +2,7 @@ import { bilingual } from "../types";
 
 // The Runs page.
 export default bilingual({
-  crumbs: "Everything launched from this machine",
+  crumbs: "Training and replay history",
   empty: "No runs yet. Launch a scenario to see your loop and the AWS GPU side by side.",
   open: "Open Scenarios",
   run: "Run",
@@ -22,7 +22,7 @@ export default bilingual({
   mlflowOpen: "Open in MLflow (experiment {{experiment}})",
   mlflowPartial: "Publishing stopped partway; opens what reached MLflow",
 }, {
-  crumbs: "本机发起的运行记录",
+  crumbs: "训练与回放记录",
   empty: "暂无运行记录。请选择场景并启动运行，以查看训练循环及服务端操作。",
   open: "查看场景",
   run: "运行",

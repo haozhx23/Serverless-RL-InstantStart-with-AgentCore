@@ -2,7 +2,7 @@ import { bilingual } from "../types";
 
 // The Capacity page: session slots and MTRL job slots.
 export default bilingual({
-  crumbs: "The only capacity you manage: session slots and MTRL job slots",
+  crumbs: "Training-session, AgentCore Runtime and MTRL capacity",
   toast: {
     stopping: "Stopping {{name}}",
     notStopped: "Could not stop: {{list}}",
@@ -57,7 +57,7 @@ export default bilingual({
     stop: "Stop",
   },
 }, {
-  crumbs: "Session 与 MTRL 任务的并发配额",
+  crumbs: "Training session、AgentCore Runtime 与 MTRL 的容量",
   toast: {
     stopping: "正在停止 {{name}}",
     notStopped: "未能停止：{{list}}",

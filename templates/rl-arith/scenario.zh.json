@@ -25,8 +25,8 @@
       "zh": "创建 session 前，用已知答案校验 reward；训练时逐步查看 reward、有训练信号的组和 sampler–trainer KL"
     },
     "evidence.note": {
-      "en": "One live run on 2026-10-29 with the defaults (6 steps, 8 prompts x 4 samples): mean reward 0.44 to 0.81, held-out 9 to 15 of 16, about 41 s per step. A single run: how much of the rise is sampling noise is not measured. Three more default runs that day: 9 to 14, 9 to 12 and 11 to 11; the base model's own held-out score varied between 9 and 11. Every other slot variant ran live once on 2026-11-02 with the other settings at their defaults ($0.0013 to $0.0017 each): batch_norm trained every group and cost the most ($0.00173); ppo and cispo returned no rollout_corr metrics; rebind_every 2 and 4 left the sampler 1 and up to 3 updates behind, with the KL reaching 0.07 and 0.17, and 4 finished in 216 s, where the default runs took 303 to 316 s; format only still trained, raising the share of bare-number answers from 50% to 91%.",
-      "zh": "2026-10-29 使用默认参数进行一次实时运行（6 步，8 个 prompt × 4 个样本）：平均 reward 从 0.44 升至 0.81，16 道留出题的正确回答数从 9 道增至 15 道，每步约 41 s。这是单次运行结果，尚未测量采样噪声对提升幅度的影响。当天另外 3 次默认设置运行：9 → 14、9 → 12、11 → 11；基座模型自身的留出集得分在 9 到 11 之间波动。其余插槽变体均于 2026-11-02 在其他设置保持默认的情况下各实时运行 1 次（每次 $0.0013–$0.0017）：batch_norm 让所有组都参与训练，费用最高（$0.00173）；ppo 和 cispo 不返回 rollout_corr 指标；rebind_every 为 2 和 4 时 sampler 分别落后 1 次和最多 3 次更新，KL 最高达到 0.07 和 0.17，其中 4 用时 216 s，默认设置的运行为 303–316 s；只看格式的 reward 仍会训练，纯数字回答的比例从 50% 升到 91%。"
+      "en": "In the default reference run, mean reward rose from 0.44 to 0.81 and held-out results from 9/16 to 15/16. Three other default runs scored 9→14, 9→12 and 11→11. Baseline scores also varied; the contribution of sampling noise has not been measured. Reward, advantage, loss and sampler-sync variants have each been run live, but their individual results do not establish a general performance advantage.",
+      "zh": "默认设置的参考运行中，平均 reward 从 0.44 升至 0.81，留出集答对数从 9/16 增至 15/16。另外三次默认设置的结果为 9→14、9→12 和 11→11。基座模型得分也有波动，尚未测量采样噪声的影响。Reward、advantage、loss 和 sampler 同步变体均有实时运行记录，但单次结果不足以证明某个变体普遍更优。"
     },
     "node.save_weights_and_rebind.title": {
       "en": "Rebind sampler",

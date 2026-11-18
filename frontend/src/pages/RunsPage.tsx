@@ -38,6 +38,7 @@ export default function RunsPage() {
             </Tooltip>
           </div>
           <Table<RunSummary>
+            scroll={{ x: true }}
             loading={isLoading} rowKey="id" dataSource={runs} size="middle" pagination={{ pageSize: 20 }}
             rowSelection={{ selectedRowKeys: picked, onChange: (keys) => setPicked(keys as string[]),
                             getCheckboxProps: (r) => ({ disabled: !published(r), title: published(r) ? undefined : t("runs.notInMlflow") }) }}
@@ -58,7 +59,7 @@ export default function RunsPage() {
               { title: t("runs.status"), className: "nowrap", render: (_, r) => <RunStatusTag status={r.status} /> },
               { title: t("runs.started"), className: "nowrap", render: (_, r) => clock(r.started_ts ?? r.created_ts) },
               { title: t("runs.duration"), align: "right", className: "nowrap", render: (_, r) => <span className="num">{seconds(r.duration_s)}</span> },
-              { title: t("runs.steps"), align: "right", className: "nowrap", render: (_, r) => <span className="num">{r.step !== null ? `${r.step + 1}/${r.total_steps}` : "—"}</span> },
+              { title: t("runs.steps"), align: "right", className: "nowrap", render: (_, r) => <span className="num">{r.step !== null ? `${r.engine === "mtrl" ? r.step : r.step + 1}/${r.total_steps}` : "—"}</span> },
               { title: t("runs.result"), align: "right", className: "nowrap", render: (_, r) => r.eval
                   ? <Tooltip title={r.eval.label}><span className="num">{r.eval.before} → {r.eval.after} / {r.eval.n}</span></Tooltip>
                   : <span className="muted">—</span> },

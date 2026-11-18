@@ -5,9 +5,11 @@ import { useTranslation } from "react-i18next";
 import { useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { api } from "../api/client";
-import { useAwsContext, useInvalidate, useMtrlOptions, useMtrlQuota, useQuota, useReadiness, useSandboxOptions } from "../api/hooks";
+import { useAwsContext, useDeployTargets, useInvalidate, useMtrlOptions, useMtrlQuota, useQuota, useReadiness, useSandboxOptions,
+  useScenarios } from "../api/hooks";
 import type { Check, CheckStatus, MtrlSelection, Quota, Readiness } from "../api/types";
 import { Linkified, PageHeader, QuotaPips, Section, useLimitSource } from "../components/Bits";
+import DeployPanel from "../components/DeployPanel";
 import { timeOfDay } from "../lib/format";
 
 const STATUS: Record<CheckStatus, { icon: React.ReactNode; color: string }> = {
@@ -57,6 +59,9 @@ export default function SetupPage() {
   };
 
   const data = readiness.data;
+  const sandboxTarget = useDeployTargets().data?.targets.find((x) => x.id === "sandbox");
+  const sandboxNames = sandboxTarget ? `${sandboxTarget.runtime_name} · ${sandboxTarget.role_name} · ECR ${sandboxTarget.repository}` : "…";
+  const builderNames = sandboxTarget ? `${sandboxTarget.build_project} · ${sandboxTarget.build_role}` : "…";
   let n = 0;
   return (
     <>
@@ -89,8 +94,8 @@ export default function SetupPage() {
           return (
             <Section key={g} title={t(`setup.group.${g}`)} hint={t(`setup.group.${g}Hint`)}>
               {g === "tracking" && <MlflowPicker current={data?.mlflow_app ?? null} onChanged={setResult} />}
-              {g === "sandbox" && <SandboxPicker onChanged={setResult} />}
-              {g === "mtrl" && <MtrlPickers onChanged={setResult} />}
+              {g === "sandbox" && <><DeployPanel targetId="sandbox" /><SandboxPicker onChanged={setResult} /></>}
+              {g === "mtrl" && <><AgentDeployPanels /><MtrlPickers onChanged={setResult} /></>}
               {checks.map((c) => {
                 n += 1;
                 const s = STATUS[c.status];
@@ -126,7 +131,8 @@ export default function SetupPage() {
               <dt>{t("setup.names.group")}</dt><dd className="mono">{ctx.model_package_group_arn ?? ctx.model_package_group}</dd>
               <dt>{t("setup.names.s3")}</dt><dd className="mono">{ctx.s3_output_path ?? "—"}</dd>
               <dt>{t("setup.names.sessions")}</dt><dd className="mono">{ctx.session_prefix}-&lt;8 hex&gt;</dd>
-              <dt>{t("setup.names.sandbox")}</dt><dd className="mono">srl_instantstart_sandbox · SRL-InstantStart-SandboxRuntime · ECR serverless-rl-instantstart-sandbox</dd>
+              <dt>{t("setup.names.sandbox")}</dt><dd className="mono">{sandboxNames}</dd>
+              <dt>{t("setup.names.builder")}</dt><dd className="mono">{builderNames}</dd>
               <dt>{t("setup.names.mtrlCheckpoints")}</dt><dd className="mono">serverless-rl-instantstart-mtrl-checkpoints</dd>
               <dt>{t("setup.names.mtrlData")}</dt><dd className="mono">{ctx.bucket ? `s3://${ctx.bucket}/serverless-rl-instantstart/mtrl/<run>/` : "—"}</dd>
               <dt>{t("setup.names.mlflowExperiments")}</dt><dd className="mono">serverless-rl-instantstart/&lt;scenario&gt; · MTRL: serverless-rl-instantstart</dd>
@@ -233,10 +239,21 @@ function SandboxPicker({ onChanged }: { onChanged: (r: Readiness) => void }) {
       </span>
       {opts.data?.errors.map((e) => <Alert key={e} type="warning" showIcon title={e} />)}
       <p className="muted" style={{ fontSize: 12, margin: 0, gridColumn: "1 / -1" }}>
-        {t("setup.pickers.sandboxNote", { sha: opts.data?.code_sha ?? "…" })}
+        {t("setup.pickers.sandboxNote")}
       </p>
     </div>
   );
+}
+
+/** One deploy panel per MTRL scenario that declares its agent (scenario.json `agent`). */
+function AgentDeployPanels() {
+  const { t } = useTranslation();
+  const targets = useDeployTargets().data?.targets.filter((x) => x.kind === "agent") ?? [];
+  const scenarios = useScenarios().data?.scenarios ?? [];
+  return <>{targets.map((x) => (
+    <DeployPanel key={x.id} targetId={x.id}
+                 label={`${t("setup.deploy.title.agent")} · ${scenarios.find((s) => s.id === x.scenario)?.title ?? x.scenario}`} />
+  ))}</>;
 }
 
 /** The MTRL resources that are picked rather than created: they usually exist already. */

@@ -46,7 +46,7 @@ export default function SessionsPage() {
             <div style={{ fontSize: 22, fontWeight: 600 }} className="num">{quota ? t("capacity.sessions.inUse", { active: quota.active ?? "?", limit: quota.limit }) : "…"}</div>
             <div className="secondary" style={{ fontSize: 13 }}>{quota ? t("capacity.sessions.captionSource", { source: limitSource(quota.limit_source) }) : t("capacity.sessions.caption")}</div>
           </div>
-          <p className="secondary" style={{ margin: 0, fontSize: 13, maxWidth: 520 }}>
+          <p className="secondary" style={{ margin: 0, fontSize: 13 }}>
             {t("capacity.sessions.note")}
           </p>
         </div>
@@ -96,7 +96,7 @@ function SandboxSessions() {
               : t("capacity.agentcore.caption")}
           </div>
         </div>
-        <p className="secondary" style={{ margin: 0, fontSize: 13, maxWidth: 560 }}>{t("capacity.agentcore.note")}</p>
+        <p className="secondary" style={{ margin: 0, fontSize: 13 }}>{t("capacity.agentcore.note")}</p>
       </div>
       {a?.error && <Alert type="warning" showIcon title={a.error} />}
     </>
@@ -125,7 +125,7 @@ function MtrlJobs() {
           <div style={{ fontSize: 22, fontWeight: 600 }} className="num">{quota ? t("capacity.sessions.inUse", { active: quota.active ?? "?", limit: quota.limit }) : "…"}</div>
           <div className="secondary" style={{ fontSize: 13 }}>{quota ? t("capacity.jobs.captionSource", { source: limitSource(quota.limit_source) }) : t("capacity.jobs.caption")}</div>
         </div>
-        <p className="secondary" style={{ margin: 0, fontSize: 13, maxWidth: 520 }}>
+        <p className="secondary" style={{ margin: 0, fontSize: 13 }}>
           {t("capacity.jobs.note")}
         </p>
       </div>

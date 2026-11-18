@@ -22,8 +22,9 @@ export function seconds(s: number | null | undefined): string {
   if (s < 0.1) return `${Math.round(s * 1000)} ms`;
   if (s < 10) return `${s.toFixed(1)} s`;
   if (s < 90) return `${Math.round(s)} s`;
-  const m = Math.floor(s / 60);
-  const r = Math.round(s % 60);
+  const whole = Math.round(s);  // round first: 239.6 s is 4 min 0 s, not 3 min 60 s
+  const m = Math.floor(whole / 60);
+  const r = whole % 60;
   return m < 60 ? `${m} min ${r} s` : `${Math.floor(m / 60)} h ${m % 60} min`;
 }
 

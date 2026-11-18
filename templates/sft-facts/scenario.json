@@ -14,7 +14,7 @@
     "model": "openai/gpt-oss-20b",
     "duration_s": 195,
     "cost_usd": 0.00043,
-    "note": "Live on 2026-10-29: ready in 10.8 s, loss 7.99 to 0.03 by step 6, and 7 of 8 questions answered with the trained fact. The first forward_backward took 52 s, the others about 4 s. BillableTokenUsage matched the estimate."
+    "note": "In the reference run, loss fell from 7.99 to 0.03 by step 6 and the trained model answered 7 of 8 questions with the provided facts. These results apply to the small example dataset; they do not measure generalization to new questions."
   },
   "you_write": [
     "data.py",

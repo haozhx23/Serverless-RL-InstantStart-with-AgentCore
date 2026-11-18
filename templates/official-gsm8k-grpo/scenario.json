@@ -22,7 +22,7 @@
     "model": "openai/gpt-oss-20b",
     "duration_s": 678,
     "cost_usd": 0.1138,
-    "note": "Live on 2026-10-29 with the notebook's defaults: held-out accuracy 56% to 78% (67 to 93 of 120 samples, about 4 to 5 points of standard error), against the published 56% to 75%. About 46 s per step; the merged save at the end took 153 s. BillableTokenUsage matched the estimate."
+    "note": "With the notebook's defaults, held-out accuracy rose from 56% to 78% (67 to 93 correct out of 120 samples; standard error about 4–5 percentage points). The official sample reports 56% to 75%. These are reference results from one run."
   },
   "probes": false,
   "you_write": ["official.py", "loop.py"],

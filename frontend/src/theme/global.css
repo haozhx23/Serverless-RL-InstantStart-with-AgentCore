@@ -373,3 +373,35 @@ body {
 .official-badge { padding: 1px 8px; border-radius: 4px; border: 1px solid var(--ink); color: var(--ink); font-weight: 600; font-size: 11px;
   letter-spacing: 0.02em; }
 .official-source .published { flex-basis: 100%; line-height: 1.5; }
+
+/* Deploying a runtime from the Setup page (docs/ui-design.md 6.3): fixed buttons, state and job beside them. */
+.deploy-panel { border: 1px solid var(--hairline); border-radius: 8px; padding: 12px 14px; margin: 4px 0 14px; background: var(--surface); }
+.deploy-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.deploy-what { min-width: 0; }
+.deploy-title { font-weight: 600; font-size: 13.5px; }
+.deploy-state { display: flex; gap: 6px; align-items: baseline; margin-top: 4px; font-size: 13px; color: var(--text-2); }
+.deploy-actions { display: inline-flex; gap: 8px; flex-shrink: 0; }
+.deploy-note { font-size: 12px; margin: 8px 0 0; line-height: 1.55; }
+.deploy-job { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--hairline); }
+.deploy-job-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; font-weight: 500; }
+.deploy-steps { list-style: none; margin: 4px 0 0; padding: 0; }
+.deploy-steps li { display: grid; grid-template-columns: 20px 150px 56px minmax(0, 1fr); gap: 8px; align-items: baseline;
+  padding: 3px 0; font-size: 12.5px; }
+.deploy-steps li.pending, .deploy-steps li.skipped { color: var(--text-3); }
+.deploy-steps .time { color: var(--text-3); text-align: right; }
+.deploy-steps .detail { color: var(--text-2); font-size: 11.5px; overflow-wrap: anywhere; }
+.deploy-log { max-height: 60vh; overflow: auto; margin: 0; padding: 10px 12px; font-size: 11.5px; line-height: 1.5;
+  background: var(--surface-2); border-radius: 6px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.deploy-confirm ul { padding-left: 18px; margin: 6px 0 10px; }
+.deploy-confirm li { margin: 2px 0; font-size: 13px; }
+.deploy-confirm .mono { overflow-wrap: anywhere; }
+.deploy-confirm p { margin: 6px 0; font-size: 13px; line-height: 1.55; }
+.deploy-line { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; padding: 8px 12px;
+  border: 1px solid var(--hairline); border-radius: 6px; font-size: 12.5px; color: var(--text-2); }
+.deploy-line-text { min-width: 0; line-height: 1.6; }
+.deploy-line strong { color: var(--text); font-weight: 600; }
+@media (max-width: 720px) {
+  .deploy-head, .deploy-line { flex-direction: column; align-items: stretch; }
+  .deploy-steps li { grid-template-columns: 20px 1fr 56px; }
+  .deploy-steps .detail { grid-column: 2 / -1; }
+}

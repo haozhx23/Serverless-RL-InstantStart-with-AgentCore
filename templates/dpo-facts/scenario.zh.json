@@ -25,8 +25,8 @@
       "zh": "逐步查看 loss、偏好判断正确的样本对数，以及 chosen 和 rejected 答案的隐式 reward"
     },
     "evidence.note": {
-      "en": "Live on 2026-10-29: the custom loss trains (0.69 to 0.0001, every pair preferred, implicit rewards +2.2 chosen and -7.5 rejected), but greedy answers do not become the chosen ones (0 of 8) and drift from the base model's. DPO widens the gap between the two answers; for facts the base model cannot know, the chosen answer stays unlikely to be generated. IPO and hinge ran live once each on 2026-11-02: IPO's implicit-reward margin settled at 0.47, near its 0.5 target, where DPO's ran to 9.6; hinge's loss reached 0 by step 3. Neither changed the greedy answers (0 of 8 chosen), as with DPO.",
-      "zh": "2026-10-29 实时运行：自定义 loss 从 0.69 降至 0.0001，所有样本对的偏好判断均正确，chosen 和 rejected 的隐式 reward 分别为 +2.2 和 −7.5。但贪心解码未生成任何 chosen 答案（8 个问题中为 0 个），回答还偏离了基座模型原有的回答。DPO 拉大了两个答案之间的差距，但对于基座模型不可能知道的事实，生成 chosen 答案的概率仍然很低。IPO 和 hinge 于 2026-11-02 各实时运行 1 次：IPO 的隐式 reward 差值稳定在 0.47，接近目标值 0.5，而 DPO 一路增大到 9.6；hinge 的 loss 在第 3 步降到 0。两者都没有改变贪心解码的回答（8 题中选中 chosen 的为 0），与 DPO 相同。"
+      "en": "In the reference run, loss fell from 0.69 to 0.0001 and all preference pairs were ranked correctly. Greedy decoding still produced none of the chosen answers (0/8), and the answers differed from the base model's. The IPO and hinge runs also remained at 0/8. Improved preference ranking alone did not improve answer generation on this dataset.",
+      "zh": "参考运行中，loss 从 0.69 降至 0.0001，所有样本对的偏好排序均正确。但贪心解码仍未生成 chosen 答案（0/8），回答也偏离了基座模型。IPO 和 hinge 的参考运行同样为 0/8。该数据集上的偏好排序改善未转化为回答生成效果的提升。"
     },
     "node.forward.title": {
       "en": "forward",

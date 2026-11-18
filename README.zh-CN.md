@@ -39,7 +39,7 @@ bash scripts/start.sh
 
 1. 在 **Training sessions**（本地进程运行训练循环）或 **MTRL**（SageMaker AI 运行训练循环并调用 AgentCore 托管的 agent）中选择场景。
 2. 使用 **Replay** 查看项目附带的运行录制。
-3. 实际训练前，在 **Setup** 完成所选场景的资源和权限检查，再选择 **Launch live run** 或 **Submit live job**。
+3. 实际训练前，在 **Setup** 完成所选场景的资源和权限检查，再选择 **Launch live run** 或 **Submit live job**。沙箱场景和 MTRL 需要的 AgentCore runtime 也在 **Setup** 用 **Deploy or update** 部署，不需要在本机构建镜像。
 
 MTRL 的本地 reward 校验使用 AWS 凭证进行本地签名。实际训练与 Runtime 部署会创建 AWS 资源并产生费用。
 
@@ -87,7 +87,7 @@ AgentCore Runtime 在两个工作流中承担不同职责：
   code-rl 默认每个回答使用一个隔离 session，评分后停止 session。
 - **agent 托管**：agent 在 Runtime 中执行多轮工具调用，并通过 SageMaker Job Runtime 获取模型回答和回报 reward。业务逻辑、工具定义和提示词可与生产 agent 共用。
 
-**Setup** 检查 runtime 与执行角色，运行控制台展示执行位置、session 生命周期和 AgentCore 费用。Runtime 日志与用量指标补充 MLflow 中的训练指标和轨迹。
+**Setup** 部署和检查 runtime 与执行角色，运行控制台展示执行位置、session 生命周期和 AgentCore 费用。Runtime 日志与用量指标补充 MLflow 中的训练指标和轨迹。
 
 ![MTRL 与 AgentCore Runtime 工作流](resources/mtrl-agentcore.png)
 
@@ -119,22 +119,16 @@ SageMaker AI 按 `prefill`、`sample`、`train` token 用量计费，AgentCore R
 
 实际训练需要 AWS 凭证及所选 SageMaker AI 功能的访问权限。可使用 EC2 实例角色，或通过 `AWS_PROFILE` 选择本机 AWS profile。**Setup** 检查模型、执行角色、存储与配额。
 
-**环境沙箱。** 在宿主机部署 AgentCore Runtime 沙箱：
+**环境沙箱。** 在 **Setup** 的环境沙箱一组点 **Deploy or update**。AWS CodeBuild 在当前账号中构建 ARM64 镜像，本机不需要 Docker 或其他构建工具。部署会创建执行角色、CodeBuild 项目、ECR 仓库、AgentCore runtime 和用量日志投递，完成后自动选中 runtime。首次部署约需 4 分钟。修改 `templates/_shared/sandbox_exec.py` 或升级项目后，再次点击即可更新；**Delete** 删除这些资源。
+
+部署需要 IAM、CodeBuild、ECR、S3、CloudWatch Logs 和 AgentCore 的权限，确认框列出具体操作。也可以在命令行执行同样的步骤：
 
 ```bash
 (cd backend && uv sync --frozen)
-backend/.venv/bin/python scripts/deploy_sandbox.py
+backend/.venv/bin/python scripts/deploy_sandbox.py      # --build local 改用本机 docker buildx
 ```
 
-部署需要 Python 3.11+、`uv`、支持 ARM64 的 Docker buildx，以及 ECR、IAM、AgentCore 和日志投递权限。完成后，在 **Setup** 选择并检查 runtime。
-
-**MTRL agent。** 在宿主机部署售后 agent：
-
-```bash
-bash templates/mtrl-aftersales/deploy/setup_aws.sh
-```
-
-部署需要 AWS CLI、支持 ARM64 的 Docker buildx，以及安装了场景依赖的 Python 环境。完成后，在 **Setup** 选择 AgentCore runtime 和任务执行角色，配置 model package group 与 MLflow App，再从 **MTRL** 提交任务。
+**MTRL agent。** 在 **Setup** 的 MTRL 一组，对售后 agent 点 **Deploy or update**。AWS CodeBuild 用场景的 `sample/` 和 `deploy/` 构建镜像，随后创建或更新 runtime，运行冒烟测试，并自动选中 runtime。已有 runtime 中本应用不设置的配置（环境变量、空闲超时、网络）保持不变。修改 agent 代码后需要再次部署：Setup 会提示已部署的代码与本地不一致。完成后选择任务执行角色，配置 model package group 与 MLflow App，再从 **MTRL** 提交任务。
 
 **实验追踪。** MLflow App 对 Training Session 为可选配置，MTRL 任务需要配置该 App。
 
@@ -145,7 +139,7 @@ bash templates/mtrl-aftersales/deploy/setup_aws.sh
 
 场景代码通过 `templates/` 挂载。修改 Python 文件后，下次运行使用新代码；修改 `scenario.json` 或译文后，执行 `docker restart serverless-rl-instantstart`。修改后端、前端或依赖后，需要重新构建并启动应用。
 
-修改 MTRL agent 的代码后，需要重新部署 agent。修改沙箱执行器后，需要重新部署环境沙箱。
+修改 MTRL agent 的代码或沙箱执行器后，在 **Setup** 点 **Deploy or update** 重新部署。
 
 运行状态保存在 `data/`。运行结束后，使用 **Export project** 下载该次运行的代码和配置。准备附带录制时使用：
 

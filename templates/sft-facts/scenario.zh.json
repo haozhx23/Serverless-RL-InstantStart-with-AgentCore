@@ -25,8 +25,8 @@
       "zh": "运行期间可向模型提问，模型使用当前步骤的权重快照作答"
     },
     "evidence.note": {
-      "en": "Live on 2026-10-29: ready in 10.8 s, loss 7.99 to 0.03 by step 6, and 7 of 8 questions answered with the trained fact. The first forward_backward took 52 s, the others about 4 s. BillableTokenUsage matched the estimate.",
-      "zh": "2026-10-29 实时运行：session 在 10.8 s 后就绪，loss 从 7.99 降至第 6 步的 0.03；8 个问题中，7 个回答包含训练中的事实。首次 forward_backward 耗时 52 s，之后每次约 4 s。BillableTokenUsage 与估算一致。"
+      "en": "In the reference run, loss fell from 7.99 to 0.03 by step 6 and the trained model answered 7 of 8 questions with the provided facts. These results apply to the small example dataset; they do not measure generalization to new questions.",
+      "zh": "参考运行中，loss 从 7.99 降至第 6 步的 0.03，训练后模型在 8 个问题中有 7 个回答包含所提供的事实。结果仅针对示例中的小样本数据集，不代表对新问题的泛化表现。"
     },
     "loop.header_out": {
       "en": "the batch from data.py",

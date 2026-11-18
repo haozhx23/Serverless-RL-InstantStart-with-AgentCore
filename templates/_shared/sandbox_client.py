@@ -205,7 +205,8 @@ class SandboxPool:
             if answer.get("code_sha") != sandbox_exec.CODE_SHA:
                 raise SandboxError(f"sandbox {box.label} (session {box.sid}) runs sandbox_exec.py version "
                                    f"{answer.get('code_sha')}, this run has {sandbox_exec.CODE_SHA}. Redeploy the "
-                                   "sandbox (python3 scripts/deploy_sandbox.py) so that what runs there is this code.")
+                                   "sandbox (Deploy or update in the Environment sandbox section of the Setup page) "
+                                   "so that what runs there is this code.")
             if answer.get("sessions") != 1:
                 raise SandboxError(f"sandbox {box.label} (session {box.sid}) answered from a process that has served "
                                    f"{answer.get('sessions')} sessions; sessions must not share a microVM")
@@ -303,7 +304,7 @@ def sandboxes(ev, config: dict) -> SandboxPool:
     sb = (config.get("aws") or {}).get("sandbox") or {}
     if not sb.get("runtime_arn"):
         raise SandboxError("config.json has no aws.sandbox.runtime_arn. A live run of this scenario needs the "
-                           "environment sandbox: deploy it (python3 scripts/deploy_sandbox.py) and select it on the "
-                           "Setup page.")
+                           "environment sandbox: deploy it with Deploy or update in the Environment sandbox section "
+                           "of the Setup page.")
     return SandboxPool(ev, LiveTransport(sb["runtime_arn"], config["aws"]["region"], sb.get("qualifier", "DEFAULT")),
                        config["run_id"], platform=sb.get("platform"))

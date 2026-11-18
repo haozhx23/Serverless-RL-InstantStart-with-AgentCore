@@ -311,6 +311,16 @@ class RunManager:
         ids = sorted((d.name for d in self.runs_dir.iterdir() if (d / "run.json").exists()), reverse=True)
         return [self.summary(i) for i in ids]
 
+    def alive_live_configs(self) -> list[dict]:
+        """The config.json of every live run whose process is still going (what a runtime deploy must not disturb)."""
+        out = []
+        for d in self.runs_dir.iterdir():
+            if (d / "run.json").exists():
+                meta = self._meta(d.name)
+                if meta["backend"] == "live" and self._alive(d.name, meta):
+                    out.append(self.config(d.name))
+        return out
+
     def config(self, run_id: str) -> dict:
         return json.loads((self._dir(run_id) / "config.json").read_text(encoding="utf-8"))
 

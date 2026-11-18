@@ -13,7 +13,7 @@
     "model": "openai-reasoning-gpt-oss-20b",
     "duration_s": null,
     "cost_usd": null,
-    "note": "Agent, tools, reward and the AgentCore deployment were verified on 2026-08-24. The first live MTRL job ran on 2026-11-06 with the smallest settings (1 step, 32 prompts x 2 rollouts, 32 training / 8 validation tickets): it completed in 557 s, cost $0.196 at list price for the tokens the job reported, and registered a model package. The base model already scored 1.0 on all 80 rollouts, so the run shows the pipeline works, not that training helps. The default settings have not run live."
+    "note": "Live-run reference: 1 step, 32 prompts × 2 rollouts, 32 training and 8 validation tickets. The run completed in 557 s, registered a model package, and cost an estimated $0.196 for training tokens at list price. The base model scored 1.0 on all 80 rollouts, so this run does not establish a training benefit. Default settings have not been run live."
   },
   "you_write": [
     "sample/agent.py",
@@ -43,6 +43,19 @@
     "sample/rollout_handler.py",
     "deploy/main.py"
   ],
+  "agent": {
+    "runtime": "aftersales_mtrl_agent",
+    "repository": "aftersales-mtrl-agent",
+    "role": "AftersalesMTRLAgentRuntimeRole",
+    "dockerfile": "deploy/Dockerfile",
+    "context": [
+      "deploy/Dockerfile",
+      "deploy/requirements-runtime.txt",
+      "deploy/main.py",
+      "sample/"
+    ],
+    "smoke_test": "deploy/smoke_test_runtime.py"
+  },
   "metrics": [
     {
       "key": "rollout/reward/mean",

@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from . import settings
 from .aws import context as aws_context
 from .aws import readiness as aws_readiness
+from .aws.deploy import DeployJobs
 from .aws.context import AwsContext
 from .errors import ApiError
 from .estimate import CostBasis
@@ -91,6 +92,7 @@ class AppState:
     runs: RunManager
     account: AccountCache
     basis: CostBasis  # completed live runs, what cost estimates are based on (srl/estimate.py)
+    deploys: DeployJobs  # the Setup page's runtime deploys (srl/aws/deploy.py)
 
     @classmethod
     def load(cls) -> AppState:
@@ -103,4 +105,5 @@ class AppState:
         return cls(
             registry=registry, runs=runs, account=AccountCache(),
             basis=CostBasis(lambda: [runs.runs_dir, *runs.recording_roots()]),
+            deploys=DeployJobs(settings.DATA_DIR),
         )

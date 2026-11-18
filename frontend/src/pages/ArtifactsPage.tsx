@@ -26,7 +26,7 @@ export default function ArtifactsPage() {
     <>
       <PageHeader crumbs={t("artifacts.crumbs")} title={t("shell.nav.artifacts")} />
       <div className="page-body" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <p className="secondary" style={{ margin: 0, fontSize: 13, maxWidth: 900 }}>
+        <p className="secondary" style={{ margin: 0, fontSize: 13 }}>
           <Trans i18nKey="artifacts.intro" values={{ group: data?.group ?? "…" }} components={{ code: <span className="mono" />, b: <b /> }} />
         </p>
         {error && <Alert type="error" showIcon title={(error as Error).message} />}

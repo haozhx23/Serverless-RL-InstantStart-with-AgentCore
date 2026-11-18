@@ -39,7 +39,7 @@ Open `http://localhost:3199` on the host.
 
 1. Choose a scenario under **Training sessions**, where your process runs the training loop, or under **MTRL**, where SageMaker AI runs the loop and calls an AgentCore-hosted agent.
 2. Select **Replay** to inspect a bundled live recording.
-3. For live training, complete the checks in **Setup**, then select **Launch live run**. MTRL scenarios use **Submit live job**.
+3. For live training, complete the checks in **Setup**, then select **Launch live run**. MTRL scenarios use **Submit live job**. The AgentCore runtimes that sandbox scenarios and MTRL need are deployed from **Setup** with **Deploy or update**; nothing is built on the machine.
 
 MTRL's local reward check uses AWS credentials for local signing. **Live training and runtime deployments create AWS resources and incur charges.**
 
@@ -89,7 +89,7 @@ The included workflows demonstrate two roles for AgentCore Runtime:
   In code-RL, the default uses one isolated session per answer and stops it after scoring.
 - **Host the agent.** In MTRL, your agent runs in Runtime and calls the SageMaker Job Runtime for model responses and reward reporting. Its business logic, tool definitions, and prompts can be shared with a production agent.
 
-**Setup** checks the runtimes and roles. The run console shows code execution, sandbox-session lifecycle, and AgentCore costs alongside SageMaker training-token costs. Runtime logs and usage metrics complement the training metrics and traces in MLflow.
+**Setup** deploys and checks the runtimes and roles. The run console shows code execution, sandbox-session lifecycle, and AgentCore costs alongside SageMaker training-token costs. Runtime logs and usage metrics complement the training metrics and traces in MLflow.
 
 The **MTRL** page shows the AgentCore-hosted agent workflow, the SageMaker AI training loop, and the agent's interface contract.
 
@@ -125,22 +125,16 @@ The run console and **Runs** provide experiment access and comparison links.
 
 Live training requires AWS credentials and access to the selected SageMaker features. **Setup** checks models, execution roles, storage, and quotas. Use an EC2 instance role or a host AWS profile selected with `AWS_PROFILE`.
 
-**Environment sandbox.** Live runs of sandbox scenarios execute model-generated code in AgentCore Runtime. Deploy the sandbox from the host:
+**Environment sandbox.** Live runs of sandbox scenarios execute model-generated code in AgentCore Runtime. In **Setup**, select **Deploy or update** in the Environment sandbox section. AWS CodeBuild builds the ARM64 image in your account, so the machine needs no Docker or other build tools. The deployment creates an execution role, a CodeBuild project, an ECR repository, the AgentCore runtime, and its usage-log delivery, then selects the runtime. A first deployment takes about four minutes. Select the button again after changing `templates/_shared/sandbox_exec.py` or updating the project; **Delete** removes these resources.
+
+Deployment needs IAM, CodeBuild, ECR, S3, CloudWatch Logs, and AgentCore permissions; the confirmation dialog lists the actions. The same steps run from the command line:
 
 ```bash
 (cd backend && uv sync --frozen)
-backend/.venv/bin/python scripts/deploy_sandbox.py
+backend/.venv/bin/python scripts/deploy_sandbox.py      # --build local uses this machine's docker buildx
 ```
 
-Deployment requires Python 3.11+, `uv`, Docker buildx with ARM64 support, and AWS permissions for ECR, IAM, AgentCore, and log delivery. Select and check the deployed runtime in **Setup**.
-
-**MTRL agent.** Deploy the after-sales agent from the host:
-
-```bash
-bash templates/mtrl-aftersales/deploy/setup_aws.sh
-```
-
-Deployment requires the AWS CLI, Docker buildx with ARM64 support, and Python with the scenario's dependencies. After deployment, select the AgentCore runtime and job execution role in **Setup**, complete the model package group and MLflow App checks, then submit the after-sales scenario from **MTRL**. Editing the agent's `sample/` code requires redeployment before a live job uses it.
+**MTRL agent.** In the MTRL section of **Setup**, select **Deploy or update** for the after-sales agent. AWS CodeBuild builds its image from the scenario's `sample/` and `deploy/`; the runtime is then created or updated, checked with the scenario's smoke test, and selected. An existing runtime keeps the settings this app does not set (environment variables, idle timeout, network). Editing the agent's code requires another deployment before a live job uses it; Setup reports when the deployed code differs. Then select the job execution role, complete the model package group and MLflow App checks, and submit the after-sales scenario from **MTRL**.
 
 **Experiment tracking.** An MLflow App is optional for Training Session and required for MTRL jobs. Select it in **Setup**.
 
@@ -149,7 +143,7 @@ Deployment requires the AWS CLI, Docker buildx with ARM64 support, and Python wi
 <details>
 <summary>Template editing, local development, and logs</summary>
 
-Scenario code is mounted from `templates/`. Python edits apply to the next run; changes to `scenario.json` or translations require `docker restart serverless-rl-instantstart`. Rebuild and restart after backend, frontend, or dependency changes. Redeploy an MTRL agent after changing its code, and the environment sandbox after changing its executor.
+Scenario code is mounted from `templates/`. Python edits apply to the next run; changes to `scenario.json` or translations require `docker restart serverless-rl-instantstart`. Rebuild and restart after backend, frontend, or dependency changes. After changing an MTRL agent's code or the sandbox executor, redeploy it with **Deploy or update** in **Setup**.
 
 Run state is stored in `data/`. After a run completes, **Export project** downloads the code used for that run. Prepare additional sanitized recordings with:
 

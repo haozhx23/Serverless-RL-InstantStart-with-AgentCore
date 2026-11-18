@@ -63,6 +63,7 @@ class ScenarioRegistry:
                 _check_slots(meta_path, meta)
                 _check_estimate(meta_path, meta)
                 _check_sandbox(meta_path, meta)
+                _check_agent(meta_path, meta)
                 _check_probe_example(meta_path, meta)
                 _check_recordings(meta_path.parent / RECORDINGS, meta["id"])
                 self._runnable[meta["id"]] = meta
@@ -265,6 +266,30 @@ def _check_sandbox(meta_path: Path, meta: dict) -> None:
     for n in nodes:
         if n.get("where") and n["lane"] != "client":
             raise ValueError(f"{meta_path}: node {n['op']} runs in the sandbox, so its lane is client (your code)")
+
+
+AGENT_KEYS = {"runtime", "repository", "role", "dockerfile", "context", "smoke_test"}
+AGENT_REQUIRED = AGENT_KEYS - {"smoke_test"}
+
+
+def _check_agent(meta_path: Path, meta: dict) -> None:
+    """`agent`: the AgentCore runtime an MTRL scenario's agent is deployed to from the Setup page (srl/aws/deploy.py):
+    its runtime, ECR repository and role names, the Dockerfile and the build files (a name ending in / is a
+    directory), all relative to the card, and optionally a smoke test run with --runtime-arn and --region."""
+    agent = meta.get("agent")
+    if agent is None:
+        return
+    if meta.get("engine") != "mtrl":
+        raise ValueError(f"{meta_path}: `agent` applies to MTRL scenarios (a training-session scenario uses `sandbox`)")
+    if not isinstance(agent, dict) or set(agent) - AGENT_KEYS or not AGENT_REQUIRED <= set(agent):
+        raise ValueError(f"{meta_path}: `agent` must have {', '.join(sorted(AGENT_REQUIRED))} (optional smoke_test), "
+                         f"got {sorted(agent) if isinstance(agent, dict) else agent!r}")
+    if not isinstance(agent["context"], list) or agent["dockerfile"] not in agent["context"]:
+        raise ValueError(f"{meta_path}: `agent.context` must list the build files, the dockerfile among them")
+    for name in agent["context"] + ([agent["smoke_test"]] if agent.get("smoke_test") else []):
+        path = meta_path.parent / name
+        if not (path.is_dir() if name.endswith("/") else path.is_file()):
+            raise ValueError(f"{meta_path}: `agent` lists {name}, which does not exist in the card")
 
 
 def _check_probe_example(meta_path: Path, meta: dict) -> None:

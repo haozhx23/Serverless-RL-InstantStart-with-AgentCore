@@ -25,8 +25,8 @@
       "zh": "在 AWS 轨道查看任务阶段，从 MLflow 查看每步 reward 和轮数；计费 token 用量由任务报告"
     },
     "evidence.note": {
-      "en": "Agent, tools, reward and the AgentCore deployment were verified on 2026-08-24. The first live MTRL job ran on 2026-11-06 with the smallest settings (1 step, 32 prompts x 2 rollouts, 32 training / 8 validation tickets): it completed in 557 s, cost $0.196 at list price for the tokens the job reported, and registered a model package. The base model already scored 1.0 on all 80 rollouts, so the run shows the pipeline works, not that training helps. The default settings have not run live.",
-      "zh": "agent、工具、reward 和 AgentCore 部署已于 2026-08-24 验证。2026-11-06 以最小设置首次实时运行 MTRL 任务（1 步，32 个 prompt × 2 条 rollout，训练 32 张、验证 8 张工单）：557 秒完成，按任务报告的 token 和目录价计 $0.196，并注册了模型包。基座模型在全部 80 条 rollout 上已得满分，因此这次运行只说明流程可用，不能说明训练有效。默认设置尚未实时运行。"
+      "en": "Live-run reference: 1 step, 32 prompts × 2 rollouts, 32 training and 8 validation tickets. The run completed in 557 s, registered a model package, and cost an estimated $0.196 for training tokens at list price. The base model scored 1.0 on all 80 rollouts, so this run does not establish a training benefit. Default settings have not been run live.",
+      "zh": "实时运行参考：1 步，32 个 prompt × 2 条 rollout，训练 32 张、验证 8 张工单。运行用时 557 s，注册了模型包，按训练 token 用量和标价估算为 $0.196。基座模型在全部 80 条 rollout 上已得满分，该次运行不足以证明训练有效。默认设置尚未实时运行。"
     },
     "loop.header": {
       "en": "SageMaker AI's loop",

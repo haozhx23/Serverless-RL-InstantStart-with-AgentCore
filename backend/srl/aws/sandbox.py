@@ -2,8 +2,8 @@
 
 A training-session scenario whose scenario.json has ``sandbox`` sends model-generated code to this
 runtime instead of running it in the loop's process (docs/architecture.md 3.10). The runtime is
-deployed from the host by scripts/deploy_sandbox.py, because building its ARM64 image needs docker,
-which this app's container does not have. Here it is only selected, checked and read:
+deployed by srl/aws/deploy.py (Deploy or update on the Setup page, or scripts/deploy_sandbox.py on the
+machine). Here it is selected, checked and read:
 
 - the selection is per region in data/settings.json; with none, the runtime with the default name
   (settings.SANDBOX_RUNTIME) is used when it exists;
@@ -32,7 +32,7 @@ from .context import AwsContext, client, load_settings, save_settings
 
 READY = "READY"
 LONG_IDLE_S = 300
-DEPLOY_CMD = "backend/.venv/bin/python scripts/deploy_sandbox.py"
+DEPLOY = "Deploy or update in the Environment sandbox section of the Setup page"
 # Active sessions per account (2026-06 release notes): 5,000 in us-east-1 and us-west-2, 2,500 elsewhere.
 ACTIVE_SESSION_LIMIT = {"us-east-1": 5000, "us-west-2": 5000}
 ACTIVE_SESSION_LIMIT_OTHER = 2500
@@ -126,19 +126,18 @@ def platform_of(rt: dict) -> str:
 def check_runtime(ctx: AwsContext) -> tuple[dict, dict | None]:
     """The runtime: selected or found, READY, running this checkout's sandbox_exec.py. Returns (check, runtime)."""
     title = L("Sandbox runtime", "沙箱 runtime")
-    why = L("Sandbox scenarios run model-written code in this AgentCore Runtime, one session (a microVM) per "
-            "rollout, instead of in the run's process, which holds this machine's AWS credentials. It must run the "
-            f"same sandbox_exec.py as this checkout. Deploy or update it on this machine with {DEPLOY_CMD}.",
-            "沙箱场景把模型写的代码放到这个 AgentCore Runtime 里执行，每条 rollout 一个 session（一台 microVM），"
-            "而不是在持有本机 AWS 凭证的运行进程里执行。它运行的 sandbox_exec.py 必须与本仓库的版本一致。"
-            f"在本机用 {DEPLOY_CMD} 部署或更新。")
+    why = L("Sandbox scenarios execute model-generated code in AgentCore Runtime sessions. The sandbox code "
+            "must match the installed application. Select Deploy or update in this section to build and "
+            "synchronize it using AWS CodeBuild in the current account.",
+            "沙箱场景通过 AgentCore Runtime session 执行模型生成的代码。沙箱代码必须与当前应用一致。"
+            "请选择本组的“部署或更新”，通过 AWS CodeBuild 在当前账号中构建并同步沙箱。")
     try:
         sel = selection(ctx)
     except Exception as e:
         return _check("sandbox-runtime", title, "unverified", f"cannot list AgentCore runtimes: {_err(e)}", why), None
     if not sel["runtime_arn"]:
         return _check("sandbox-runtime", title, "fail", f"none selected, and no runtime named {settings.SANDBOX_RUNTIME} "
-                      f"in {ctx.region}; deploy it with {DEPLOY_CMD}", why), None
+                      f"in {ctx.region}; deploy it with {DEPLOY}", why), None
     try:
         rt = describe(ctx, sel["runtime_arn"])
     except Exception as e:
@@ -148,14 +147,14 @@ def check_runtime(ctx: AwsContext) -> tuple[dict, dict | None]:
     network = (rt.get("networkConfiguration") or {}).get("networkMode")
     kind = "container" if "containerConfiguration" in (rt.get("agentRuntimeArtifact") or {}) else "code"
     deployed, local = env.get("SRL_SANDBOX_CODE"), local_code_sha()
-    observed = (f"{rt.get('agentRuntimeName')} v{rt.get('agentRuntimeVersion')} ({sel['source']}), {rt.get('status')}, "
-                f"platform {platform_of(rt)}, {kind}, {network} network, idle timeout "
-                f"{life.get('idleRuntimeSessionTimeout')} s, sandbox_exec {deployed or 'unknown'}")
+    observed = (f"{rt.get('agentRuntimeName')} ({sel['source']}), {rt.get('status')}, "
+                f"{kind}, {network} network, idle timeout {life.get('idleRuntimeSessionTimeout')} s")
     if rt.get("status") != READY:
         return _check("sandbox-runtime", title, "fail", observed, why), rt
     if deployed != local:
-        return _check("sandbox-runtime", title, "fail", observed + f"; this checkout has sandbox_exec {local}: redeploy "
-                      f"with {DEPLOY_CMD}", why), rt
+        compatibility = "sandbox code not recorded" if not deployed else "sandbox code differs from the installed application"
+        return _check("sandbox-runtime", title, "fail", observed + f"; {compatibility}: redeploy with {DEPLOY}", why), rt
+    observed += "; sandbox code matches the installed application"
     idle = life.get("idleRuntimeSessionTimeout") or 0
     if idle > LONG_IDLE_S:
         return _check("sandbox-runtime", title, "warn", observed + f"; a session a run fails to stop bills its memory "
@@ -165,11 +164,11 @@ def check_runtime(ctx: AwsContext) -> tuple[dict, dict | None]:
 
 def check_role(ctx: AwsContext, rt: dict | None) -> dict:
     title = L("Sandbox execution role", "沙箱执行角色")
-    why = L("Code running in the sandbox can obtain this role's credentials (measured on 2026-11-10), so the role "
+    why = L("Code running in the sandbox can obtain this role's credentials, so the role "
             "should allow nothing beyond pulling the image and writing logs. Managed policies attached to it are "
             "reported here.",
-            "沙箱里运行的代码能拿到这个角色的临时凭证（2026-11-10 实测），因此角色只应允许拉取镜像和写日志。"
-            "这里列出挂在它上面的托管策略。")
+            "沙箱中的代码可以获取此角色的临时凭证，因此角色权限应仅包括拉取镜像和写日志。"
+            "此处列出角色关联的托管策略。")
     if rt is None:
         return _check("sandbox-role", title, "unverified", "no sandbox runtime to read the role of", why)
     role = rt.get("roleArn", "").rsplit("/", 1)[-1]
@@ -207,9 +206,9 @@ def check_usage_logs(ctx: AwsContext, rt: dict | None) -> tuple[dict, str | None
     title = L("Sandbox usage logs", "沙箱用量日志")
     why = L("The run console shows what a run's sandbox sessions cost from the runtime's USAGE_LOGS (per session, "
             "per second, arriving about 20 minutes later). Without them a run's AgentCore cost cannot be shown. "
-            "The deploy script sets them up.",
+            "Deploy or update sets them up.",
             "运行控制台根据 runtime 的 USAGE_LOGS（按 session、按秒，约 20 分钟后到达）显示一次运行的沙箱费用。"
-            "没有它就无法显示运行的 AgentCore 费用。部署脚本会配置它。")
+            "没有它就无法显示运行的 AgentCore 费用。“部署或更新”会配置它。")
     if rt is None:
         return _check("sandbox-usage", title, "unverified", "no sandbox runtime", why), None
     try:
@@ -218,7 +217,7 @@ def check_usage_logs(ctx: AwsContext, rt: dict | None) -> tuple[dict, str | None
         return _check("sandbox-usage", title, "unverified", _err(e), why), None
     if not group:
         return _check("sandbox-usage", title, "warn", f"no USAGE_LOGS delivery for {rt.get('agentRuntimeName')}; "
-                      f"redeploy with {DEPLOY_CMD}", why), None
+                      f"redeploy with {DEPLOY}", why), None
     return _check("sandbox-usage", title, "pass", f"delivered to {group}", why), group
 
 
@@ -247,7 +246,7 @@ def run_usage(ctx: AwsContext, run_id: str, sandbox: dict, start_ts: float, end_
     group = sandbox.get("usage_log_group")
     if not group:
         raise ApiError("This run's sandbox runtime had no USAGE_LOGS delivery when the run started, so its AgentCore "
-                       f"usage cannot be read per run. Redeploy the sandbox ({DEPLOY_CMD}) for future runs.")
+                       f"usage cannot be read per run. Redeploy the sandbox ({DEPLOY}) for future runs.")
     logs = client("logs", ctx)
     per: dict[str, dict] = {}
     last = None

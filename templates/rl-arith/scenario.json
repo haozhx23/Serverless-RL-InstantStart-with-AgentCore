@@ -14,7 +14,7 @@
     "model": "openai/gpt-oss-20b",
     "duration_s": 303,
     "cost_usd": 0.00124,
-    "note": "One live run on 2026-10-29 with the defaults (6 steps, 8 prompts x 4 samples): mean reward 0.44 to 0.81, held-out 9 to 15 of 16, about 41 s per step. A single run: how much of the rise is sampling noise is not measured. Three more default runs that day: 9 to 14, 9 to 12 and 11 to 11; the base model's own held-out score varied between 9 and 11. Every other slot variant ran live once on 2026-11-02 with the other settings at their defaults ($0.0013 to $0.0017 each): batch_norm trained every group and cost the most ($0.00173); ppo and cispo returned no rollout_corr metrics; rebind_every 2 and 4 left the sampler 1 and up to 3 updates behind, with the KL reaching 0.07 and 0.17, and 4 finished in 216 s, where the default runs took 303 to 316 s; format only still trained, raising the share of bare-number answers from 50% to 91%."
+    "note": "In the default reference run, mean reward rose from 0.44 to 0.81 and held-out results from 9/16 to 15/16. Three other default runs scored 9→14, 9→12 and 11→11. Baseline scores also varied; the contribution of sampling noise has not been measured. Reward, advantage, loss and sampler-sync variants have each been run live, but their individual results do not establish a general performance advantage."
   },
   "you_write": [
     "task.py",

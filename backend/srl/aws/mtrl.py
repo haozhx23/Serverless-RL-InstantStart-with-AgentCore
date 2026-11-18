@@ -191,19 +191,20 @@ def check_runtime(ctx: AwsContext) -> dict:
     s = selection(ctx)
     title = L("Agent in AgentCore Runtime", "AgentCore Runtime 中的 agent")
     why = L("SageMaker AI calls this runtime for every rollout. It must be READY and run under a role with "
-            "AmazonSageMakerJobRuntimeAccess (Sample, CompleteRollout, UpdateReward). Deploy the sample's agent with "
-            "deploy/setup_aws.sh in the scenario's files; AgentCore Runtime needs an ARM64 image.",
+            "AmazonSageMakerJobRuntimeAccess (Sample, CompleteRollout, UpdateReward). Deploy or update a scenario's "
+            "agent with the Deploy or update button of this section: AWS CodeBuild builds its ARM64 image in the "
+            "account. Deployment records the agent code so its compatibility with the installed application can be checked.",
             "SageMaker AI 在每条 rollout 中调用此 runtime。runtime 必须处于 READY 状态，执行角色需附加 "
             "AmazonSageMakerJobRuntimeAccess 策略（Sample、CompleteRollout、UpdateReward）。"
-            "可通过场景文件中的 deploy/setup_aws.sh 部署样例 agent；AgentCore Runtime 需要 ARM64 镜像。")
+            "用本组的“部署或更新”按钮部署或更新场景的 agent：AWS CodeBuild 在当前账号中构建 ARM64 镜像。"
+            "部署会记录所用的 agent 代码，以便检查其是否与当前应用一致。")
     if not s["runtime_arn"]:
         return _check("mtrl-runtime", title, "fail", "no runtime selected; pick one below", why)
     try:
         rt = client("bedrock-agentcore-control", ctx).get_agent_runtime(agentRuntimeId=s["runtime_arn"].rsplit("/", 1)[-1])
     except Exception as e:
         return _check("mtrl-runtime", title, "fail", f"{s['runtime_arn']}: {_err(e)}", why)
-    image = ((rt.get("agentRuntimeArtifact") or {}).get("containerConfiguration") or {}).get("containerUri")
-    observed = f"{rt.get('agentRuntimeName')} {rt.get('status')} · image {image or '?'} · updated {rt.get('lastUpdatedAt')}"
+    observed = f"{rt.get('agentRuntimeName')} {rt.get('status')} · updated {rt.get('lastUpdatedAt')}"
     if rt.get("status") != "READY":
         return _check("mtrl-runtime", title, "fail", observed, why)
     role_name = (rt.get("roleArn") or "").rsplit("/", 1)[-1]
@@ -213,6 +214,17 @@ def check_runtime(ctx: AwsContext) -> dict:
             return _check("mtrl-runtime", title, "fail", observed + f"; its role {role_name} lacks AmazonSageMakerJobRuntimeAccess", why)
     except ClientError as e:
         return _check("mtrl-runtime", title, "unverified", observed + f"; role not checked: {_err(e)}", why)
+    from .deploy import agent_target_for_runtime
+    target = agent_target_for_runtime(rt.get("agentRuntimeName"))
+    if target:
+        deployed, local = (rt.get("environmentVariables") or {}).get(target.code_env), target.code_version()
+        if deployed is None:
+            observed += "; agent code compatibility not checked (deployed separately); Deploy or update to synchronize it"
+        elif deployed != local:
+            return _check("mtrl-runtime", title, "fail", observed + "; agent code differs from the installed application: "
+                          "Deploy or update in this section", why)
+        else:
+            observed += "; agent code matches the installed application"
     return _check("mtrl-runtime", title, "pass", observed, why)
 
 

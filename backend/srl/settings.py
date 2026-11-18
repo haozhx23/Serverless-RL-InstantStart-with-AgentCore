@@ -46,6 +46,18 @@ MTRL_CHECKPOINT_GROUP = os.environ.get("SRL_MTRL_CHECKPOINT_GROUP", "serverless-
 # Versions the templates were verified with (live, 2026-10-27).
 TESTED_SDK = {"sagemaker-train": "1.27.0", "boto3": "1.43.119"}
 
-# The environment sandbox (docs/architecture.md 3.10): an AgentCore Runtime deployed by scripts/deploy_sandbox.py.
-# Without a selection on the Setup page, the runtime with this name is used.
+# The environment sandbox (docs/architecture.md 3.10): an AgentCore Runtime deployed from the Setup page
+# (srl/aws/deploy.py) or by scripts/deploy_sandbox.py. Without a selection on the Setup page, the runtime with
+# this name is used.
 SANDBOX_RUNTIME = os.environ.get("SRL_SANDBOX_RUNTIME", "srl_instantstart_sandbox")
+SANDBOX_ROLE = os.environ.get("SRL_SANDBOX_ROLE", "SRL-InstantStart-SandboxRuntime")
+SANDBOX_REPOSITORY = os.environ.get("SRL_SANDBOX_REPOSITORY", "serverless-rl-instantstart-sandbox")
+# Where the sandbox's USAGE_LOGS go (per session, per second; a run's AgentCore cost is read from them).
+SANDBOX_USAGE_GROUP = os.environ.get("SRL_SANDBOX_USAGE_GROUP",
+                                     "/aws/vendedlogs/bedrock-agentcore/serverless-rl-instantstart/sandbox-usage")
+SANDBOX_USAGE_SOURCE = os.environ.get("SRL_SANDBOX_USAGE_SOURCE", "srl-instantstart-sandbox-usage")
+SANDBOX_USAGE_DEST = os.environ.get("SRL_SANDBOX_USAGE_DEST", "srl-instantstart-sandbox-usage-cwl")
+
+# AWS CodeBuild builds the ARM64 images of the runtimes the Setup page deploys (srl/aws/deploy.py).
+IMAGE_BUILD_PROJECT = os.environ.get("SRL_IMAGE_BUILD_PROJECT", "serverless-rl-instantstart-image-build")
+IMAGE_BUILD_ROLE = os.environ.get("SRL_IMAGE_BUILD_ROLE", "SRL-InstantStart-ImageBuild")

@@ -1,7 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "./client";
 import type {
-  AgentcoreUsage, AwsContext, Billing, CostEstimate, Models, MtrlJob, MtrlOptions, PackageRow, Pricing, Quota, Readiness, Recording,
+  AgentcoreUsage, AwsContext, Billing, CostEstimate, DeployTarget, Models, MtrlJob, MtrlOptions, PackageRow, Pricing, Quota, Readiness, Recording,
   RunSummary, SandboxActive, SandboxOptions, Scenario, SessionRow,
 } from "./types";
 
@@ -114,6 +114,19 @@ export const useArtifacts = () =>
 
 export const useSandboxOptions = (enabled = true) =>
   useQuery({ queryKey: ["sandbox-options"], queryFn: () => api<SandboxOptions>("/api/sandbox/options"), enabled, staleTime: 60_000 });
+
+/** The runtimes the Setup page deploys; polled every 3 s while one of their jobs runs. */
+export const useDeployTargets = () =>
+  useQuery({
+    queryKey: ["deploy"], queryFn: () => api<{ targets: DeployTarget[] }>("/api/deploy"), staleTime: 30_000,
+    refetchInterval: (q) => (q.state.data?.targets.some((t) => t.job?.state === "running") ? 3000 : false),
+  });
+
+export const useDeployLog = (id: string, open: boolean, running: boolean) =>
+  useQuery({
+    queryKey: ["deploy-log", id], queryFn: () => api<{ lines: string[] }>(`/api/deploy/${id}/log`), enabled: open,
+    refetchInterval: open && running ? 3000 : false,
+  });
 
 export const useSandboxActive = () =>
   useQuery({ queryKey: ["sandbox-active"], queryFn: () => api<SandboxActive>("/api/sandbox/active"), refetchInterval: 60_000 });

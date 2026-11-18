@@ -25,8 +25,8 @@
       "zh": "逐步查看 batch 准确率、有训练信号的组，以及 ppo loss 的诊断指标"
     },
     "evidence.note": {
-      "en": "Live on 2026-10-29 with the notebook's defaults: held-out accuracy 56% to 78% (67 to 93 of 120 samples, about 4 to 5 points of standard error), against the published 56% to 75%. About 46 s per step; the merged save at the end took 153 s. BillableTokenUsage matched the estimate.",
-      "zh": "2026-10-29 使用 notebook 默认参数进行实时运行：留出集准确率从 56% 升至 78%（120 次采样中，正确回答数从 67 增至 93，标准误约 4–5 个百分点），官方公布结果为 56% → 75%。每步约 46 s，最后保存合并权重耗时 153 s。BillableTokenUsage 与估算一致。"
+      "en": "With the notebook's defaults, held-out accuracy rose from 56% to 78% (67 to 93 correct out of 120 samples; standard error about 4–5 percentage points). The official sample reports 56% to 75%. These are reference results from one run.",
+      "zh": "使用 notebook 默认参数时，留出集准确率从 56% 升至 78%（120 次采样中答对 67 → 93 次，标准误约 4–5 个百分点）。官方样例报告为 56% → 75%。以上为单次运行的参考结果。"
     },
     "source.published": {
       "en": "AWS launch blog (2026-10-22): 10 training steps on 40 problems took held-out accuracy from 56% to 75%.",

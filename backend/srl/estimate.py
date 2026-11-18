@@ -164,7 +164,7 @@ def estimate(meta: dict, basis: CostBasis, params: dict, file_variants: dict, cu
            # measured per run (GET /api/runs/{id}/agentcore), not estimated here: "usd" is training tokens only.
            "agentcore": "not_estimated" if "sandbox" in meta else None}
     if meta.get("engine", "training-session") == "mtrl":
-        # The service counts MTRL tokens, and no MTRL job of this app has completed live to measure.
+        # Pre-run estimates currently cover training-session loops only; MTRL reports usage during the job.
         return {**out, "reason": {"code": "mtrl"}}
     est = meta.get("estimate")
     if not est:

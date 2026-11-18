@@ -10,6 +10,7 @@ import { joinList, readyFor } from "../lib/engines";
 import { int, seconds, usd } from "../lib/format";
 import Composer, { LoopPreview } from "./Composer";
 import CostEstimateView from "./CostEstimate";
+import { DeployLine, deployTargetOf } from "./DeployPanel";
 
 // Starting a run of one scenario: live or a replay (docs/ui-design.md §6.1).
 // Training-session scenarios get the loop map: the composer when they have slots, read-only when not.
@@ -27,6 +28,7 @@ export default function LaunchDrawer({ scenario, initialMode, readiness, models,
   const invalidate = useInvalidate();
   const mtrl = scenario.engine === "mtrl";
   const { ready: liveReady, blockers } = readyFor(scenario.engine, readiness, lang, !!scenario.sandbox);
+  const deployTarget = deployTargetOf(scenario);  // the runtime its live runs need: always shown, with its own button
   const [mode, setMode] = useState<Mode>(initialMode);
   const [recording, setRecording] = useState(scenario.recordings[scenario.recordings.length - 1]?.name);
   const [speed, setSpeed] = useState(4);
@@ -108,6 +110,7 @@ export default function LaunchDrawer({ scenario, initialMode, readiness, models,
               </div>
             }>
       <Segmented block value={mode} onChange={(v) => setMode(v as Mode)} options={modes} style={{ marginBottom: 14 }} />
+      {deployTarget && <DeployLine targetId={deployTarget} />}
       {live && !liveReady && (
         <Alert type="warning" showIcon style={{ marginBottom: 14 }} title={t(mtrl ? "scenarios.drawer.blockedJobs" : "scenarios.drawer.blockedRuns")}
                description={<Trans i18nKey="scenarios.drawer.missing" values={{ blockers: joinList(t, blockers) }}

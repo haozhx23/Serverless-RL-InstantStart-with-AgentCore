@@ -35,7 +35,7 @@ export default function PathsPage() {
     <>
       <PageHeader crumbs={t("paths.crumbs")} title={t("shell.nav.paths")} />
       <div className="page-body" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        <p className="secondary" style={{ margin: 0, fontSize: 13.5, maxWidth: 860 }}>{t("paths.intro")}</p>
+        <p className="secondary" style={{ margin: 0, fontSize: 13.5 }}>{t("paths.intro")}</p>
         <div className="paths">
           <div className="corner" />
           {COLS.map((c, i) => (

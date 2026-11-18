@@ -158,6 +158,8 @@ export interface Scenario {
   source?: ScenarioSource; probes?: boolean; probe_example?: string;
   /** A live run sends code to the environment sandbox, so it also needs the sandbox to be ready (scenario.json). */
   sandbox?: { executes: string };
+  /** MTRL: the agent the Setup page deploys to AgentCore Runtime (scenario.json `agent`); its deploy target is agent-<id>. */
+  agent?: { runtime: string; repository: string; role: string; dockerfile: string; context: string[]; smoke_test?: string };
   status: "derived" | "live-verified" | "planned"; plan?: string; loop?: LoopSpec; slots?: SlotSpec[];
   evidence?: { basis: string; date: string; region: string; model: string; duration_s: number | null; cost_usd: number | null; note: string };
   you_write?: string[]; aws_runs?: string[]; you_will_see?: string[]; files?: string[];
@@ -209,6 +211,32 @@ export interface SandboxOptions {
   runtimes: { arn: string; name: string; status: string; updated: string }[]; errors: string[]; default_name: string;
   code_sha: string; selection: { runtime_arn: string | null; source: "selected" | "default name" | null; default_name: string };
 }
+/** A runtime the Setup page deploys (srl/aws/deploy.py): the environment sandbox or an MTRL scenario's agent. */
+export type DeployCondition = "missing" | "busy" | "failed" | "current" | "outdated" | "unrecorded";
+export type DeployStepId = "role" | "builder" | "image" | "runtime" | "usage_logs" | "warm" | "smoke" | "select"
+  | "repository" | "sources";
+export interface DeployStep {
+  id: DeployStepId; state: "pending" | "running" | "done" | "failed" | "skipped"; started: number | null; ended: number | null;
+  detail: string | null;
+}
+export interface DeployJob {
+  id: string; target: string; action: "deploy" | "delete"; region: string; state: "running" | "succeeded" | "failed" | "interrupted";
+  started: number; ended: number | null; error: string | null; steps: DeployStep[];
+  result: { image?: string; runtime_arn?: string; version?: string; build_id?: string };
+}
+export interface DeployTarget {
+  id: string; kind: "sandbox" | "agent"; scenario: string | null; runtime_name: string; repository: string; role_name: string;
+  build_project: string; build_role: string; platform: string | null; warm: number; smoke_test: string | null;
+  permissions: Record<string, string[]>; usage_log_group: string | null; bucket: string | null; region: string;
+  /** The code version this checkout would deploy (sandbox: sandbox_exec.py; agent: the image's build files). */
+  local_version: string | null;
+  deployed: { arn: string; status: string; version: string; code_version: string | null; platform: string; image: string | null;
+              updated: string } | null;
+  condition: DeployCondition | null; error: string | null; job: DeployJob | null;
+  /** Live runs still going on this runtime: deploy and delete wait for them. */
+  blocked_by: string[];
+}
+
 export interface SandboxActive { active: number | null; at: number | null; limit: number; limit_source: string; error: string | null }
 
 export interface MtrlJob {

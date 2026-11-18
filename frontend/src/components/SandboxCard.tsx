@@ -11,7 +11,7 @@ import { Ident } from "./Bits";
 export function SandboxCard({ sandbox }: { sandbox: SandboxView }) {
   const { t } = useTranslation();
   const name = sandbox.runtime?.split("/").pop()?.replace(/-[A-Za-z0-9]{10}$/, "");
-  let where: React.ReactNode = <><Ident value={name ?? "?"} /> · {t("console.sandbox.platform", { platform: sandbox.platform ?? "?" })}</>;
+  let where: React.ReactNode = <><Ident value={name ?? "?"} /> · AgentCore Runtime</>;
   let isolation = t("console.sandbox.isolation");
   return (
     <>
@@ -25,7 +25,6 @@ export function SandboxCard({ sandbox }: { sandbox: SandboxView }) {
         <dd className="num">{sandbox.cold ? t("console.sandbox.coldValue", { p50: seconds(sandbox.cold.p50), max: seconds(sandbox.cold.max) }) : "—"}</dd>
         <dt>{t("console.sandbox.requests")}</dt>
         <dd className="num">{int(sandbox.calls)}{sandbox.retries ? t("console.sandbox.retried", { n: sandbox.retries }) : ""}</dd>
-        <dt>{t("console.sandbox.code")}</dt><dd className="mono">sandbox_exec {sandbox.codeSha}</dd>
       </dl>
       {sandbox.failedStops.length > 0 && (
         <p style={{ fontSize: 12.5, color: "var(--error)", margin: "8px 0 0" }}>
@@ -70,7 +69,7 @@ export function AgentcoreLine({ kind, usage, error, backend }: {
       </div>
       <div className="muted" style={{ fontSize: 11.5, marginTop: 4 }}>
         {t(kind === "agent" ? "console.meter.agentcoreNoteAgent" : "console.meter.agentcoreNote",
-           { asOf: usage?.price_as_of ?? "2026-11-10", platform: usage?.platform ?? "?" })}
+           { asOf: usage?.price_as_of ?? "2026-11-10" })}
       </div>
     </div>
   );
